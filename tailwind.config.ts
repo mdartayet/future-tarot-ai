@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        'cinzel': ['Cinzel', 'serif'],
+        'crimson': ['Crimson Text', 'serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -47,16 +51,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,20 +59,12 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
         },
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
@@ -89,12 +75,27 @@ export default {
           "100%": { backgroundPosition: "-200% 0" },
         },
         "glow": {
-          "0%, 100%": { opacity: "0.5" },
-          "50%": { opacity: "1" },
+          "0%, 100%": { opacity: "0.5", filter: "brightness(1)" },
+          "50%": { opacity: "1", filter: "brightness(1.3)" },
         },
         "card-flip": {
           "0%": { transform: "rotateY(0deg)" },
           "100%": { transform: "rotateY(180deg)" },
+        },
+        "shuffle": {
+          "0%": { transform: "translateX(0) rotate(0deg)" },
+          "25%": { transform: "translateX(-100px) rotate(-15deg)" },
+          "50%": { transform: "translateX(100px) rotate(15deg)" },
+          "75%": { transform: "translateX(-50px) rotate(-8deg)" },
+          "100%": { transform: "translateX(0) rotate(0deg)" },
+        },
+        "flicker": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.8" },
+        },
+        "reveal": {
+          "0%": { transform: "rotateY(180deg) scale(0.8)", opacity: "0" },
+          "100%": { transform: "rotateY(0deg) scale(1)", opacity: "1" },
         },
       },
       animation: {
@@ -104,11 +105,15 @@ export default {
         "shimmer": "shimmer 3s linear infinite",
         "glow": "glow 2s ease-in-out infinite",
         "card-flip": "card-flip 0.6s ease-in-out",
+        "shuffle": "shuffle 0.5s ease-in-out",
+        "flicker": "flicker 3s ease-in-out infinite",
+        "reveal": "reveal 0.8s ease-out forwards",
       },
       backgroundImage: {
+        'gradient-cave': 'var(--gradient-cave)',
         'gradient-mystic': 'var(--gradient-mystic)',
         'gradient-golden': 'var(--gradient-golden)',
-        'gradient-night': 'var(--gradient-night)',
+        'gradient-candle': 'var(--gradient-candle)',
       },
     },
   },

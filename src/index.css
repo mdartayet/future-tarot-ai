@@ -8,47 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 221 47% 6%;
-    --foreground: 280 20% 96%;
+    --background: 240 15% 6%;
+    --foreground: 45 20% 92%;
 
-    --card: 263 70% 12%;
-    --card-foreground: 280 20% 96%;
+    --card: 240 20% 10%;
+    --card-foreground: 45 20% 92%;
 
-    --popover: 263 70% 12%;
-    --popover-foreground: 280 20% 96%;
+    --popover: 240 20% 10%;
+    --popover-foreground: 45 20% 92%;
 
     --primary: 271 81% 56%;
-    --primary-foreground: 280 20% 96%;
+    --primary-foreground: 45 20% 96%;
 
     --secondary: 43 96% 56%;
-    --secondary-foreground: 221 47% 6%;
+    --secondary-foreground: 240 15% 6%;
 
-    --muted: 263 50% 20%;
-    --muted-foreground: 280 10% 70%;
+    --muted: 240 15% 18%;
+    --muted-foreground: 45 10% 65%;
 
     --accent: 43 96% 56%;
-    --accent-foreground: 221 47% 6%;
+    --accent-foreground: 240 15% 6%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 280 20% 96%;
+    --destructive-foreground: 45 20% 96%;
 
-    --border: 263 50% 25%;
-    --input: 263 50% 25%;
+    --border: 240 15% 20%;
+    --input: 240 15% 20%;
     --ring: 271 81% 56%;
 
-    --radius: 1rem;
+    --radius: 0.75rem;
 
-    /* Gradientes místicos */
-    --gradient-mystic: linear-gradient(135deg, hsl(271 81% 56%), hsl(263 70% 40%));
+    /* Gradientes de cueva mística */
+    --gradient-cave: linear-gradient(180deg, hsl(240 15% 6%), hsl(240 20% 10%) 50%, hsl(240 15% 8%));
+    --gradient-mystic: linear-gradient(135deg, hsl(271 81% 56%), hsl(271 60% 40%));
     --gradient-golden: linear-gradient(135deg, hsl(43 96% 56%), hsl(38 92% 50%));
-    --gradient-night: linear-gradient(180deg, hsl(221 47% 6%), hsl(263 70% 12%));
+    --gradient-candle: radial-gradient(circle, hsl(43 96% 56% / 0.3) 0%, transparent 70%);
     
-    /* Sombras mágicas */
-    --glow-purple: 0 0 30px hsl(271 81% 56% / 0.4);
-    --glow-gold: 0 0 20px hsl(43 96% 56% / 0.3);
+    /* Sombras mágicas y texturas */
+    --glow-purple: 0 0 40px hsl(271 81% 56% / 0.5), 0 0 80px hsl(271 81% 56% / 0.3);
+    --glow-gold: 0 0 30px hsl(43 96% 56% / 0.4), 0 0 60px hsl(43 96% 56% / 0.2);
+    --shadow-cave: inset 0 0 100px hsl(240 15% 0% / 0.7), inset 0 0 50px hsl(240 15% 0% / 0.5);
     
     /* Transiciones */
-    --transition-magic: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-magic: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -58,6 +60,25 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-crimson;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-cinzel;
   }
 }
+
+@layer utilities {
+  .preserve-3d {
+    transform-style: preserve-3d;
+  }
+  
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+  
+  .rotate-y-180 {
+    transform: rotateY(180deg);
+  }
+}
+

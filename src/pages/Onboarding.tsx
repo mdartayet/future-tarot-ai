@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 
@@ -11,12 +12,14 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [focus, setFocus] = useState<"love" | "career" | "money">("love");
+  const [question, setQuestion] = useState("");
 
   const handleStart = () => {
     if (!name.trim()) return;
     
     sessionStorage.setItem("userName", name);
     sessionStorage.setItem("userFocus", focus);
+    sessionStorage.setItem("userQuestion", question);
     
     navigate("/reading");
   };
@@ -81,6 +84,19 @@ const Onboarding = () => {
                   </Label>
                 </div>
               </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="question" className="text-foreground font-cinzel">
+                ¿Qué pregunta deseas hacerle al tarot?
+              </Label>
+              <Textarea
+                id="question"
+                placeholder="Escribe tu pregunta aquí..."
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                className="bg-background/50 border-border font-crimson min-h-[100px]"
+              />
             </div>
 
             <Button

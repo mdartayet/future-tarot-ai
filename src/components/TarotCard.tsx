@@ -74,14 +74,13 @@ const TarotCard = ({
             </div>
           )}
 
-          {/* Card symbol */}
-          <div className="flex-1 flex items-center justify-center">
-            <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-mystic flex items-center justify-center shadow-lg">
-                <span className="text-3xl">🔮</span>
-              </div>
-              <div className="absolute -inset-2 bg-gradient-candle blur-xl opacity-50" />
-            </div>
+          {/* Card image */}
+          <div className="flex-1 flex items-center justify-center p-2">
+            <img 
+              src={`/tarot-cards/${name}.png`}
+              alt={name}
+              className="w-full h-full object-contain rounded-lg"
+            />
           </div>
 
           {/* Card name */}

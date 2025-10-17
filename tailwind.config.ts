@@ -80,10 +80,35 @@ export default {
             height: "0",
           },
         },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-20px)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "200% 0" },
+          "100%": { backgroundPosition: "-200% 0" },
+        },
+        "glow": {
+          "0%, 100%": { opacity: "0.5" },
+          "50%": { opacity: "1" },
+        },
+        "card-flip": {
+          "0%": { transform: "rotateY(0deg)" },
+          "100%": { transform: "rotateY(180deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "float": "float 3s ease-in-out infinite",
+        "shimmer": "shimmer 3s linear infinite",
+        "glow": "glow 2s ease-in-out infinite",
+        "card-flip": "card-flip 0.6s ease-in-out",
+      },
+      backgroundImage: {
+        'gradient-mystic': 'var(--gradient-mystic)',
+        'gradient-golden': 'var(--gradient-golden)',
+        'gradient-night': 'var(--gradient-night)',
       },
     },
   },

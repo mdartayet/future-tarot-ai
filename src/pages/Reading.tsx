@@ -156,7 +156,7 @@ const Reading = () => {
       const shuffled = [...TAROT_CARDS].sort(() => Math.random() - 0.5);
       const picked = shuffled.slice(0, 3);
       setSelectedCards(picked);
-      sessionStorage.setItem("readingCards", JSON.stringify(picked));
+      sessionStorage.setItem("selectedCards", JSON.stringify(picked));
       setIsShuffling(false);
 
       // Reveal cards one by one
@@ -167,6 +167,13 @@ const Reading = () => {
   };
 
   const handleContinue = () => {
+    // Store cards with their full reading info
+    const cardsForResults = selectedCards.map(card => ({
+      name: card.name,
+      meaning: card.meaning,
+      reading: card.fullReading || card.meaning
+    }));
+    sessionStorage.setItem("selectedCards", JSON.stringify(cardsForResults));
     navigate("/results");
   };
 

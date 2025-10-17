@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Lock, Sparkles } from "lucide-react";
+import { Lock, Sparkles, Home } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 
 interface TarotCard {
@@ -36,7 +36,18 @@ const Results = () => {
       <div className="min-h-screen p-6">
         <div className="max-w-4xl mx-auto space-y-8 pb-20">
           {/* Header */}
-          <div className="text-center space-y-2 pt-8">
+          <div className="text-center space-y-4 pt-8">
+            <div className="flex justify-center mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/")}
+                className="text-muted-foreground hover:text-foreground font-cinzel"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Volver al Inicio
+              </Button>
+            </div>
             <h1 className="text-4xl font-cinzel font-bold text-foreground">
               Tu Vistazo Mágico
             </h1>

@@ -82,9 +82,14 @@ const TarotCard = ({
                 src={getCardImagePath(name)}
                 alt={name}
                 className="w-full h-full object-contain rounded-lg"
+                onLoad={() => {
+                  console.log(`✓ Cargada exitosamente: "${name}"`);
+                }}
                 onError={(e) => {
-                  console.error(`Failed to load image for: ${name}`);
-                  console.error(`Attempted path: ${getCardImagePath(name)}`);
+                  const path = getCardImagePath(name);
+                  console.error(`✗ ERROR cargando: "${name}"`);
+                  console.error(`  Ruta intentada: "${path}"`);
+                  console.error(`  URL completa: "${e.currentTarget.src}"`);
                   e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                 }}
               />

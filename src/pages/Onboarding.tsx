@@ -7,15 +7,33 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
+import { useToast } from "@/hooks/use-toast";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [name, setName] = useState("");
   const [focus, setFocus] = useState<"love" | "career" | "money">("love");
   const [question, setQuestion] = useState("");
 
   const handleStart = () => {
-    if (!name.trim()) return;
+    if (!name.trim()) {
+      toast({
+        title: "Nombre requerido",
+        description: "Por favor, ingresa tu nombre para continuar",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!question.trim()) {
+      toast({
+        title: "Pregunta requerida",
+        description: "Por favor, escribe tu pregunta para el tarot",
+        variant: "destructive",
+      });
+      return;
+    }
     
     sessionStorage.setItem("userName", name);
     sessionStorage.setItem("userFocus", focus);
@@ -61,8 +79,8 @@ const Onboarding = () => {
             </div>
 
             <div className="space-y-3">
-              <Label className="text-foreground font-cinzel">
-                ¿Qué misterio deseas desentrañar?
+              <Label className="text-foreground font-cinzel text-lg">
+                Paso 1: ¿Qué misterio deseas desentrañar?
               </Label>
               <RadioGroup value={focus} onValueChange={(value: any) => setFocus(value)}>
                 <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted/50 transition-colors border border-border/30">
@@ -87,8 +105,8 @@ const Onboarding = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="question" className="text-foreground font-cinzel">
-                ¿Qué pregunta deseas hacerle al tarot?
+              <Label htmlFor="question" className="text-foreground font-cinzel text-lg">
+                Paso 2: ¿Qué pregunta deseas hacerle al tarot?
               </Label>
               <Textarea
                 id="question"
@@ -101,7 +119,7 @@ const Onboarding = () => {
 
             <Button
               onClick={handleStart}
-              disabled={!name.trim()}
+              disabled={!name.trim() || !question.trim()}
               className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
               style={{ boxShadow: 'var(--glow-purple)' }}
             >

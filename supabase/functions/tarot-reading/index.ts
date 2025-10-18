@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    // Get JWT from Authorization header
+    // Get and validate auth header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(
@@ -25,24 +25,32 @@ serve(async (req) => {
     // Create authenticated Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+    const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: authHeader } }
     });
 
-    // Verify user session
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      console.error('Auth error:', authError);
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.error('Auth error:', userError);
       return new Response(
         JSON.stringify({ error: 'No autorizado' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { focus, question, cards } = await req.json();
+    const { userName, focus, question, cards } = await req.json();
     
-    // Validate input
-    if (!question || question.trim().length < 10 || question.trim().length > 500) {
+    // Input validation
+    if (!question || typeof question !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Se requiere una pregunta válida' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const trimmedQuestion = question.trim();
+    if (trimmedQuestion.length < 10 || trimmedQuestion.length > 500) {
       return new Response(
         JSON.stringify({ error: 'La pregunta debe tener entre 10 y 500 caracteres' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -51,24 +59,27 @@ serve(async (req) => {
 
     if (!['love', 'career', 'money'].includes(focus)) {
       return new Response(
-        JSON.stringify({ error: 'Foco inválido' }),
+        JSON.stringify({ error: 'Enfoque inválido' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get user's display name
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('display_name')
-      .eq('id', user.id)
-      .single();
-
-    const userName = profile?.display_name || 'Buscador';
+    if (!userName || userName.length > 50) {
+      return new Response(
+        JSON.stringify({ error: 'Nombre inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY no está configurada');
     }
+
+    // Sanitize question before AI prompt
+    const sanitizedQuestion = trimmedQuestion
+      .replace(/[<>]/g, '')
+      .substring(0, 500);
 
     // Create prompt for AI
     const cardDescriptions = cards.map((card: any, index: number) => {
@@ -83,7 +94,7 @@ Sé específico en tus respuestas y conecta las cartas con la pregunta del usuar
 
     const userPrompt = `El viajero ${userName} busca respuestas sobre ${focus}.
 
-Su pregunta es: "${question}"
+Su pregunta es: "${sanitizedQuestion}"
 
 Las cartas reveladas son:
 ${cardDescriptions}
@@ -132,15 +143,22 @@ Proporciona una lectura detallada y personalizada que:
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Save reading to database using authenticated user
-    await supabaseClient.from('user_readings').insert({
-      user_id: user.id,
+    // Save reading to database using authenticated user ID
+    const serviceSupabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    
+    const { error: insertError } = await serviceSupabase.from('user_readings').insert({
+      user_id: user.id,  // Use authenticated user ID
       user_name: userName,
       focus,
-      question,
+      question: sanitizedQuestion,
       cards,
       ai_response: aiResponse,
     });
+
+    if (insertError) {
+      console.error('Insert error:', insertError);
+      throw insertError;
+    }
 
     return new Response(
       JSON.stringify({ response: aiResponse }),

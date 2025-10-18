@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Sparkles } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,89 +20,103 @@ const authSchema = z.object({
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Redirect if already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/");
       }
     });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        navigate("/");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleAuth = async () => {
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validation = authSchema.safeParse({ email, password, displayName });
+    if (!validation.success) {
+      toast({
+        title: "Error de validación",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      const validation = authSchema.safeParse({
+      const { error } = await supabase.auth.signUp({
         email,
         password,
-        displayName: isLogin ? undefined : displayName,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: displayName,
+          }
+        }
       });
 
-      if (!validation.success) {
-        const errors = validation.error.errors.map(e => e.message).join(", ");
-        toast({
-          title: "Error de validación",
-          description: errors,
-          variant: "destructive",
-        });
-        return;
-      }
+      if (error) throw error;
 
-      setIsLoading(true);
-
-      if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          if (error.message.includes("Invalid login credentials")) {
-            throw new Error("Email o contraseña incorrectos");
-          }
-          throw error;
-        }
-
-        toast({
-          title: "✨ Bienvenido de vuelta",
-          description: "Has iniciado sesión exitosamente",
-        });
-        navigate("/");
-      } else {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              display_name: displayName,
-            },
-          },
-        });
-
-        if (error) {
-          if (error.message.includes("already registered")) {
-            throw new Error("Este email ya está registrado");
-          }
-          throw error;
-        }
-
-        toast({
-          title: "✨ Cuenta creada",
-          description: "Tu cuenta ha sido creada exitosamente. Puedes iniciar sesión ahora.",
-        });
-        setIsLogin(true);
-        setPassword("");
-      }
+      toast({
+        title: "✨ Cuenta creada",
+        description: "Bienvenido al Tarot Futura",
+      });
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Ocurrió un error inesperado",
+        title: "Error al registrarse",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const validation = authSchema.omit({ displayName: true }).safeParse({ email, password });
+    if (!validation.success) {
+      toast({
+        title: "Error de validación",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✨ Bienvenido de vuelta",
+        description: "Has iniciado sesión exitosamente",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error al iniciar sesión",
+        description: error.message === "Invalid login credentials" 
+          ? "Credenciales inválidas" 
+          : error.message,
         variant: "destructive",
       });
     } finally {
@@ -113,13 +128,10 @@ const Auth = () => {
     <CaveBackground>
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md space-y-8 animate-float">
-          {/* Logo/Header */}
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div
-                className="w-24 h-24 rounded-full bg-gradient-mystic flex items-center justify-center animate-glow"
-                style={{ boxShadow: 'var(--glow-purple)' }}
-              >
+              <div className="w-24 h-24 rounded-full bg-gradient-mystic flex items-center justify-center animate-glow"
+                   style={{ boxShadow: 'var(--glow-purple)' }}>
                 <Sparkles className="w-12 h-12 text-primary-foreground" />
               </div>
             </div>
@@ -127,94 +139,109 @@ const Auth = () => {
               Tarot Futura
             </h1>
             <p className="text-muted-foreground text-lg font-crimson italic">
-              {isLogin ? "Regresa al reino místico..." : "Únete al reino místico..."}
+              Ingresa al reino de los misterios ancestrales
             </p>
           </div>
 
-          {/* Auth Form */}
-          <Card className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">
-            <div className="space-y-4">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="displayName" className="text-foreground font-cinzel">
-                    Nombre
-                  </Label>
-                  <Input
-                    id="displayName"
-                    type="text"
-                    placeholder="Tu nombre"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+          <Card className="bg-card/80 backdrop-blur-sm border border-border p-8">
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-6">
+                <TabsTrigger value="signin" className="font-cinzel">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="signup" className="font-cinzel">Registrarse</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="signin">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-email" className="font-cinzel">Email</Label>
+                    <Input
+                      id="signin-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      required
+                      className="font-crimson"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signin-password" className="font-cinzel">Contraseña</Label>
+                    <Input
+                      id="signin-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••"
+                      required
+                      className="font-crimson"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
                     disabled={isLoading}
-                    className="bg-background/50 border-border font-crimson"
-                  />
-                </div>
-              )}
+                    className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                  >
+                    {isLoading ? "Ingresando..." : "Entrar al Santuario"}
+                  </Button>
+                </form>
+              </TabsContent>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground font-cinzel">
-                  Email
-                </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="tu@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                  className="bg-background/50 border-border font-crimson"
-                />
-              </div>
+              <TabsContent value="signup">
+                <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-name" className="font-cinzel">Nombre</Label>
+                    <Input
+                      id="signup-name"
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="Tu nombre"
+                      required
+                      maxLength={50}
+                      className="font-crimson"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-foreground font-cinzel">
-                  Contraseña
-                </Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                  onKeyPress={(e) => e.key === "Enter" && handleAuth()}
-                  className="bg-background/50 border-border font-crimson"
-                />
-              </div>
-            </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-email" className="font-cinzel">Email</Label>
+                    <Input
+                      id="signup-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      required
+                      className="font-crimson"
+                    />
+                  </div>
 
-            <Button
-              onClick={handleAuth}
-              disabled={isLoading}
-              className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
-              style={{ boxShadow: 'var(--glow-purple)' }}
-            >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : isLogin ? (
-                "Entrar"
-              ) : (
-                "Crear Cuenta"
-              )}
-            </Button>
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-password" className="font-cinzel">Contraseña</Label>
+                    <Input
+                      id="signup-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••"
+                      required
+                      minLength={6}
+                      className="font-crimson"
+                    />
+                  </div>
 
-            <div className="text-center">
-              <button
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setPassword("");
-                }}
-                disabled={isLoading}
-                className="text-sm text-primary hover:underline font-crimson"
-              >
-                {isLogin ? "¿No tienes cuenta? Regístrate" : "¿Ya tienes cuenta? Inicia sesión"}
-              </button>
-            </div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                  >
+                    {isLoading ? "Creando..." : "Crear Cuenta"}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
           </Card>
-
-          <p className="text-center text-xs text-muted-foreground font-crimson italic">
-            Las cartas ancestrales te esperan en la penumbra...
-          </p>
         </div>
       </div>
     </CaveBackground>

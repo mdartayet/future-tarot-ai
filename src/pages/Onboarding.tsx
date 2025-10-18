@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,82 +9,67 @@ import { Sparkles, LogOut } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { z } from "zod";
-
-const questionSchema = z.object({
-  question: z.string()
-    .trim()
-    .min(10, "La pregunta debe tener al menos 10 caracteres")
-    .max(500, "La pregunta no puede exceder 500 caracteres"),
-  focus: z.enum(["love", "career", "money"]),
-});
+import { userInputSchema } from "@/lib/validation";
+import type { User } from "@supabase/supabase-js";
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [userName, setUserName] = useState("");
+  const [user, setUser] = useState<User | null>(null);
+  const [name, setName] = useState("");
   const [focus, setFocus] = useState<"love" | "career" | "money">("love");
   const [question, setQuestion] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is authenticated
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Check auth and redirect if not logged in
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
       if (!session) {
         navigate("/auth");
-        return;
+      } else {
+        // Set name from profile
+        setName(session.user.user_metadata?.display_name || "");
       }
-      
-      // Get user profile
-      supabase
-        .from("profiles")
-        .select("display_name")
-        .eq("id", session.user.id)
-        .single()
-        .then(({ data }) => {
-          if (data?.display_name) {
-            setUserName(data.display_name);
-          }
-          setIsLoading(false);
-        });
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
       if (!session) {
         navigate("/auth");
+      } else {
+        setName(session.user.user_metadata?.display_name || "");
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogout = async () => {
+  const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
   };
 
   const handleStart = () => {
-    const validation = questionSchema.safeParse({ question, focus });
+    const validation = userInputSchema.safeParse({ name, question, focus });
     
     if (!validation.success) {
-      const errors = validation.error.errors.map(e => e.message).join(", ");
       toast({
         title: "Error de validación",
-        description: errors,
+        description: validation.error.errors[0].message,
         variant: "destructive",
       });
       return;
     }
     
+    sessionStorage.setItem("userName", name);
     sessionStorage.setItem("userFocus", focus);
     sessionStorage.setItem("userQuestion", question);
     
     navigate("/reading");
   };
 
-  if (isLoading) {
-    return null;
+  if (!user) {
+    return null; // Will redirect to /auth
   }
 
   return (
@@ -104,23 +90,32 @@ const Onboarding = () => {
             <p className="text-muted-foreground text-lg font-crimson italic">
               Descubre los secretos que las sombras ocultan...
             </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSignOut}
+              className="text-muted-foreground hover:text-foreground font-crimson"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Salir
+            </Button>
           </div>
 
           {/* Form */}
           <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <p className="text-foreground font-cinzel">
-                Bienvenido, <span className="text-primary">{userName}</span>
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Salir
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-foreground font-cinzel">
+                ¿Cómo te llamas, viajero?
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Tu nombre"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                maxLength={50}
+                className="bg-background/50 border-border font-crimson"
+              />
             </div>
 
             <div className="space-y-3">
@@ -155,16 +150,20 @@ const Onboarding = () => {
               </Label>
               <Textarea
                 id="question"
-                placeholder="Escribe tu pregunta aquí..."
+                placeholder="Escribe tu pregunta aquí (mínimo 10 caracteres)..."
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
+                maxLength={500}
                 className="bg-background/50 border-border font-crimson min-h-[100px]"
               />
+              <p className="text-xs text-muted-foreground font-crimson">
+                {question.length}/500 caracteres
+              </p>
             </div>
 
             <Button
               onClick={handleStart}
-              disabled={!question.trim()}
+              disabled={!name.trim() || !question.trim() || question.length < 10}
               className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
               style={{ boxShadow: 'var(--glow-purple)' }}
             >

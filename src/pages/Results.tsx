@@ -23,6 +23,7 @@ const Results = () => {
   const [userQuestion, setUserQuestion] = useState("");
   const [aiReading, setAiReading] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [isPaid, setIsPaid] = useState(false);
 
   useEffect(() => {
     const selectedCards = sessionStorage.getItem("selectedCards");
@@ -79,7 +80,7 @@ const Results = () => {
       setAiReading(data.response);
       
       toast({
-        title: "✨ Lectura Premium Revelada",
+        title: "✨ Lectura del Oráculo Revelada",
         description: "El oráculo ha respondido tu pregunta",
       });
     } catch (error: any) {
@@ -105,6 +106,19 @@ const Results = () => {
       default:
         return "🔮";
     }
+  };
+
+  const getPreviewText = (text: string) => {
+    const halfLength = Math.floor(text.length / 2);
+    return text.substring(0, halfLength);
+  };
+
+  const handleUnlockPremium = () => {
+    toast({
+      title: "Servicio Premium",
+      description: "Funcionalidad de pago en desarrollo",
+    });
+    // Aquí se implementará la integración con Stripe
   };
 
   return (
@@ -148,7 +162,7 @@ const Results = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Crown className="w-5 h-5 text-yellow-500" />
-                  <h3 className="font-cinzel text-xl text-foreground">Lectura Premium con IA</h3>
+                  <h3 className="font-cinzel text-xl text-foreground">Lectura del Oráculo</h3>
                 </div>
                 
                 {isLoadingAI ? (
@@ -159,10 +173,31 @@ const Results = () => {
                     </p>
                   </div>
                 ) : aiReading ? (
-                  <div className="prose prose-invert max-w-none">
-                    <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line">
-                      {aiReading}
-                    </p>
+                  <div className="space-y-4">
+                    <div className="prose prose-invert max-w-none relative">
+                      <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line">
+                        {isPaid ? aiReading : getPreviewText(aiReading)}
+                        {!isPaid && "..."}
+                      </p>
+                      {!isPaid && (
+                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-purple-900/90 to-transparent" />
+                      )}
+                    </div>
+                    
+                    {!isPaid && (
+                      <div className="text-center pt-4 border-t border-yellow-500/30">
+                        <p className="text-muted-foreground font-crimson mb-4 italic">
+                          Desbloquea la lectura completa con el servicio premium
+                        </p>
+                        <Button
+                          onClick={handleUnlockPremium}
+                          className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                        >
+                          <Crown className="w-4 h-4 mr-2" />
+                          Desbloquear Lectura Completa
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4">
@@ -171,7 +206,7 @@ const Results = () => {
                       className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Obtener Lectura Premium
+                      Obtener Lectura del Oráculo
                     </Button>
                   </div>
                 )}

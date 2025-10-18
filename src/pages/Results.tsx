@@ -6,6 +6,7 @@ import { Sparkles, Loader2, Crown } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getCardImageFilename } from "@/lib/tarot-utils";
 
 interface TarotCard {
   id: number;
@@ -114,11 +115,11 @@ const Results = () => {
   };
 
   const handleUnlockPremium = () => {
+    setIsPaid(true);
     toast({
-      title: "Servicio Premium",
-      description: "Funcionalidad de pago en desarrollo",
+      title: "✨ Lectura Completa Desbloqueada",
+      description: "Ahora puedes leer la lectura completa del oráculo",
     });
-    // Aquí se implementará la integración con Stripe
   };
 
   return (
@@ -233,11 +234,12 @@ const Results = () => {
 
                   <div className="aspect-[2/3] relative">
                     <img
-                      src={`/tarot-cards/${card.name.toLowerCase().replace(/ /g, '-').replace(/ñ/g, 'n')}.png`}
+                      src={`/tarot-cards/${getCardImageFilename(card.name)}.png`}
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
                       onError={(e) => {
                         console.error(`Failed to load image for: ${card.name}`);
+                        console.error(`Attempted path: /tarot-cards/${getCardImageFilename(card.name)}.png`);
                         e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                       }}
                     />

@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { getCardImageFilename } from "@/lib/tarot-utils";
+import { getCardImagePath } from "@/lib/tarot-utils";
 
 interface TarotCardProps {
   name: string;
@@ -79,13 +79,12 @@ const TarotCard = ({
           <div className="flex-1 flex items-center justify-center p-2">
             {name ? (
               <img 
-                src={`/tarot-cards/${getCardImageFilename(name)}.png`}
+                src={getCardImagePath(name)}
                 alt={name}
                 className="w-full h-full object-contain rounded-lg"
                 onError={(e) => {
-                  const imagePath = `/tarot-cards/${getCardImageFilename(name)}.png`;
                   console.error(`Failed to load image for: ${name}`);
-                  console.error(`Attempted path: ${imagePath}`);
+                  console.error(`Attempted path: ${getCardImagePath(name)}`);
                   e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                 }}
               />

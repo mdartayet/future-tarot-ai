@@ -6,7 +6,7 @@ import { Sparkles, Loader2, Crown } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { getCardImageFilename } from "@/lib/tarot-utils";
+import { getCardImagePath } from "@/lib/tarot-utils";
 
 interface TarotCard {
   id: number;
@@ -234,12 +234,12 @@ const Results = () => {
 
                   <div className="aspect-[2/3] relative">
                     <img
-                      src={`/tarot-cards/${getCardImageFilename(card.name)}.png`}
+                      src={getCardImagePath(card.name)}
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
                       onError={(e) => {
                         console.error(`Failed to load image for: ${card.name}`);
-                        console.error(`Attempted path: /tarot-cards/${getCardImageFilename(card.name)}.png`);
+                        console.error(`Attempted path: ${getCardImagePath(card.name)}`);
                         e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                       }}
                     />

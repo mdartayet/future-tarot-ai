@@ -233,9 +233,13 @@ const Results = () => {
 
                   <div className="aspect-[2/3] relative">
                     <img
-                      src={`/tarot-cards/${card.name}.png`}
+                      src={`/tarot-cards/${encodeURIComponent(card.name)}.png`}
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
+                      onError={(e) => {
+                        console.error(`Failed to load image for: ${card.name}`);
+                        e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
+                      }}
                     />
                   </div>
 

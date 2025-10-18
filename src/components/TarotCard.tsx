@@ -76,15 +76,19 @@ const TarotCard = ({
 
           {/* Card image */}
           <div className="flex-1 flex items-center justify-center p-2">
-            <img 
-              src={`/tarot-cards/${name.toLowerCase().replace(/ /g, '-').replace(/ñ/g, 'n')}.png`}
-              alt={name}
-              className="w-full h-full object-contain rounded-lg"
-              onError={(e) => {
-                console.error(`Failed to load image for: ${name}`);
-                e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
-              }}
-            />
+            {name ? (
+              <img 
+                src={`/tarot-cards/${name.toLowerCase().replace(/ /g, '-').replace(/ñ/g, 'n')}.png`}
+                alt={name}
+                className="w-full h-full object-contain rounded-lg"
+                onError={(e) => {
+                  console.error(`Failed to load image for: ${name}`);
+                  e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
+                }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-4xl">✨</div>
+            )}
           </div>
 
           {/* Card name */}

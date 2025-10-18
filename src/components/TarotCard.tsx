@@ -77,7 +77,7 @@ const TarotCard = ({
           {/* Card image */}
           <div className="flex-1 flex items-center justify-center p-2">
             <img 
-              src={`/tarot-cards/${encodeURIComponent(name)}.png`}
+              src={`/tarot-cards/${name.toLowerCase().replace(/ /g, '-').replace(/ñ/g, 'n')}.png`}
               alt={name}
               className="w-full h-full object-contain rounded-lg"
               onError={(e) => {

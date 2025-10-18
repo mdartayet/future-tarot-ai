@@ -233,7 +233,7 @@ const Results = () => {
 
                   <div className="aspect-[2/3] relative">
                     <img
-                      src={`/tarot-cards/${encodeURIComponent(card.name)}.png`}
+                      src={`/tarot-cards/${card.name.toLowerCase().replace(/ /g, '-').replace(/ñ/g, 'n')}.png`}
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
                       onError={(e) => {

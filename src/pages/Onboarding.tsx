@@ -1,46 +1,90 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles } from "lucide-react";
+import { Sparkles, LogOut } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+const questionSchema = z.object({
+  question: z.string()
+    .trim()
+    .min(10, "La pregunta debe tener al menos 10 caracteres")
+    .max(500, "La pregunta no puede exceder 500 caracteres"),
+  focus: z.enum(["love", "career", "money"]),
+});
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [name, setName] = useState("");
+  const [userName, setUserName] = useState("");
   const [focus, setFocus] = useState<"love" | "career" | "money">("love");
   const [question, setQuestion] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is authenticated
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        navigate("/auth");
+        return;
+      }
+      
+      // Get user profile
+      supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", session.user.id)
+        .single()
+        .then(({ data }) => {
+          if (data?.display_name) {
+            setUserName(data.display_name);
+          }
+          setIsLoading(false);
+        });
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session) {
+        navigate("/auth");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
   const handleStart = () => {
-    if (!name.trim()) {
+    const validation = questionSchema.safeParse({ question, focus });
+    
+    if (!validation.success) {
+      const errors = validation.error.errors.map(e => e.message).join(", ");
       toast({
-        title: "Nombre requerido",
-        description: "Por favor, ingresa tu nombre para continuar",
+        title: "Error de validación",
+        description: errors,
         variant: "destructive",
       });
       return;
     }
     
-    if (!question.trim()) {
-      toast({
-        title: "Pregunta requerida",
-        description: "Por favor, escribe tu pregunta para el tarot",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    sessionStorage.setItem("userName", name);
     sessionStorage.setItem("userFocus", focus);
     sessionStorage.setItem("userQuestion", question);
     
     navigate("/reading");
   };
+
+  if (isLoading) {
+    return null;
+  }
 
   return (
     <CaveBackground>
@@ -64,18 +108,19 @@ const Onboarding = () => {
 
           {/* Form */}
           <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-foreground font-cinzel">
-                ¿Cómo te llamas, viajero?
-              </Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Tu nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-background/50 border-border font-crimson"
-              />
+            <div className="flex items-center justify-between">
+              <p className="text-foreground font-cinzel">
+                Bienvenido, <span className="text-primary">{userName}</span>
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Salir
+              </Button>
             </div>
 
             <div className="space-y-3">
@@ -119,7 +164,7 @@ const Onboarding = () => {
 
             <Button
               onClick={handleStart}
-              disabled={!name.trim() || !question.trim()}
+              disabled={!question.trim()}
               className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
               style={{ boxShadow: 'var(--glow-purple)' }}
             >

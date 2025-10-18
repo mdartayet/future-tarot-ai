@@ -1,1 +1,4 @@
 project_id = "gbwnpewazejkymcmffcd"
+
+[functions.tarot-reading]
+verify_jwt = true

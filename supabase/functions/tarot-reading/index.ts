@@ -13,14 +13,57 @@ serve(async (req) => {
   }
 
   try {
-    const { userName, focus, question, cards } = await req.json();
-    
-    if (!question || !question.trim()) {
+    // Get JWT from Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Se requiere una pregunta para la lectura premium' }),
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Create authenticated Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseClient = createClient(supabaseUrl, supabaseKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    // Verify user session
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'No autorizado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { focus, question, cards } = await req.json();
+    
+    // Validate input
+    if (!question || question.trim().length < 10 || question.trim().length > 500) {
+      return new Response(
+        JSON.stringify({ error: 'La pregunta debe tener entre 10 y 500 caracteres' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    if (!['love', 'career', 'money'].includes(focus)) {
+      return new Response(
+        JSON.stringify({ error: 'Foco inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Get user's display name
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('display_name')
+      .eq('id', user.id)
+      .single();
+
+    const userName = profile?.display_name || 'Buscador';
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -89,13 +132,9 @@ Proporciona una lectura detallada y personalizada que:
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Save reading to database
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    await supabase.from('user_readings').insert({
-      user_id: userName, // Using userName as temporary user_id
+    // Save reading to database using authenticated user
+    await supabaseClient.from('user_readings').insert({
+      user_id: user.id,
       user_name: userName,
       focus,
       question,

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sparkles } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +25,8 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
   useEffect(() => {
     // Redirect if already logged in
@@ -124,6 +127,46 @@ const Auth = () => {
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const emailSchema = z.string().email("Email inválido");
+    const validation = emailSchema.safeParse(resetEmail);
+    
+    if (!validation.success) {
+      toast({
+        title: "Error de validación",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✨ Email enviado",
+        description: "Revisa tu correo para restablecer tu contraseña",
+      });
+      setIsResetDialogOpen(false);
+      setResetEmail("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <CaveBackground>
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -185,6 +228,47 @@ const Auth = () => {
                   >
                     {isLoading ? "Ingresando..." : "Entrar al Santuario"}
                   </Button>
+
+                  <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button 
+                        type="button" 
+                        variant="link" 
+                        className="w-full text-muted-foreground font-crimson hover:text-foreground"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="bg-card/95 backdrop-blur-sm border-border">
+                      <DialogHeader>
+                        <DialogTitle className="font-cinzel text-2xl">Recuperar Contraseña</DialogTitle>
+                        <DialogDescription className="font-crimson">
+                          Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
+                        </DialogDescription>
+                      </DialogHeader>
+                      <form onSubmit={handlePasswordReset} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="reset-email" className="font-cinzel">Email</Label>
+                          <Input
+                            id="reset-email"
+                            type="email"
+                            value={resetEmail}
+                            onChange={(e) => setResetEmail(e.target.value)}
+                            placeholder="tu@email.com"
+                            required
+                            className="font-crimson"
+                          />
+                        </div>
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                        >
+                          {isLoading ? "Enviando..." : "Enviar Enlace"}
+                        </Button>
+                      </form>
+                    </DialogContent>
+                  </Dialog>
                 </form>
               </TabsContent>
 

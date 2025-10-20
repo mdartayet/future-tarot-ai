@@ -5,6 +5,7 @@
  */
 export const getCardImagePath = (cardName: string): string => {
   if (!cardName) return '';
-  // Direct path without encoding - Vite handles public files correctly
-  return `/tarot-cards/${cardName}.png`;
+  // Encode the card name to handle special characters like tildes and spaces
+  const encodedName = encodeURIComponent(cardName);
+  return `/tarot-cards/${encodedName}.png`;
 };

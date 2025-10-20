@@ -5,6 +5,7 @@ import { Sparkles, Shuffle } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
 import TarotCard from "@/components/TarotCard";
+import AdSense from "@/components/AdSense";
 import { useLanguage, translations } from "@/hooks/use-language";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -296,17 +297,22 @@ const Reading = () => {
               </div>
 
               {revealedCards.every(r => r) && (
-                <div className="flex justify-center animate-float">
-                  <Button
-                    onClick={handleContinue}
-                    size="lg"
-                    className="bg-gradient-golden hover:opacity-90 text-accent-foreground h-16 px-10 font-cinzel text-lg shadow-2xl"
-                    style={{ boxShadow: 'var(--glow-gold)' }}
-                  >
-                    <Shuffle className="w-6 h-6 mr-3" />
-                    {language === 'es' ? 'Descifrar el Mensaje' : 'Decipher the Message'}
-                  </Button>
-                </div>
+                <>
+                  {/* AdSense Banner */}
+                  <AdSense className="my-6" />
+                  
+                  <div className="flex justify-center animate-float">
+                    <Button
+                      onClick={handleContinue}
+                      size="lg"
+                      className="bg-gradient-golden hover:opacity-90 text-accent-foreground h-16 px-10 font-cinzel text-lg shadow-2xl"
+                      style={{ boxShadow: 'var(--glow-gold)' }}
+                    >
+                      <Shuffle className="w-6 h-6 mr-3" />
+                      {language === 'es' ? 'Descifrar el Mensaje' : 'Decipher the Message'}
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           )}

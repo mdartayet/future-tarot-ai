@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Sparkles, Loader2, Crown } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
+import AdSense from "@/components/AdSense";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCardImagePath } from "@/lib/tarot-utils";
@@ -261,6 +262,9 @@ const Results = () => {
             </p>
           </div>
 
+          {/* AdSense Banner - Top */}
+          <AdSense className="my-6" />
+
           {/* User Question */}
           {userQuestion && (
             <Card className="bg-card/80 backdrop-blur-sm border-border p-6">
@@ -440,6 +444,9 @@ const Results = () => {
               </Card>
             ))}
           </div>
+
+          {/* AdSense Banner - Bottom */}
+          <AdSense className="my-6" />
 
           {/* Actions */}
           <div className="flex gap-4 justify-center">

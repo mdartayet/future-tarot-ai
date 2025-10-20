@@ -374,7 +374,7 @@ const Results = () => {
                           className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                         >
                           <Crown className="w-4 h-4 mr-2" />
-                          {t.unlockButton} - €9.99
+                          {t.unlockButton} - $2.99
                         </Button>
                       </div>
                     )}

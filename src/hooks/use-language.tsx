@@ -8,10 +8,17 @@ interface LanguageStore {
   setLanguage: (lang: Language) => void;
 }
 
+// Detect browser language
+const getBrowserLanguage = (): Language => {
+  const browserLang = navigator.language.toLowerCase();
+  // Check if browser language starts with 'es' for Spanish, otherwise default to English
+  return browserLang.startsWith('es') ? 'es' : 'en';
+};
+
 export const useLanguage = create<LanguageStore>()(
   persist(
     (set) => ({
-      language: 'es',
+      language: getBrowserLanguage(),
       setLanguage: (language) => set({ language }),
     }),
     {

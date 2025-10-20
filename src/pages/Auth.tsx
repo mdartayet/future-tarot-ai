@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CaveBackground from "@/components/CaveBackground";
@@ -31,6 +32,7 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   useEffect(() => {
     // Redirect if already logged in
@@ -51,6 +53,15 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!acceptedTerms) {
+      toast({
+        title: "Error",
+        description: t.mustAcceptTerms,
+        variant: "destructive",
+      });
+      return;
+    }
     
     const validation = authSchema.safeParse({ email, password, displayName });
     if (!validation.success) {
@@ -330,10 +341,29 @@ const Auth = () => {
                     />
                   </div>
 
+                  <div className="flex items-start space-x-2">
+                    <Checkbox
+                      id="terms"
+                      checked={acceptedTerms}
+                      onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                      className="mt-1"
+                    />
+                    <Label htmlFor="terms" className="text-sm font-crimson leading-relaxed cursor-pointer">
+                      {t.agreeToTerms}{' '}
+                      <Link to="/terms" className="text-primary hover:underline font-semibold">
+                        {t.termsOfService}
+                      </Link>{' '}
+                      {t.and}{' '}
+                      <Link to="/privacy" className="text-primary hover:underline font-semibold">
+                        {t.privacyPolicy}
+                      </Link>
+                    </Label>
+                  </div>
+
                   <Button
                     type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                    disabled={isLoading || !acceptedTerms}
+                    className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel disabled:opacity-50"
                   >
                     {isLoading ? (language === 'es' ? 'Creando...' : 'Creating...') : t.createAccount}
                   </Button>

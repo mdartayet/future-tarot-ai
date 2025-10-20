@@ -68,6 +68,10 @@ export const translations = {
     enterSanctuary: 'Entrar al Santuario',
     createAccount: 'Crear Cuenta',
     forgotPassword: '¿Olvidaste tu contraseña?',
+    agreeToTerms: 'Acepto los',
+    termsOfService: 'Términos de Servicio',
+    privacyPolicy: 'Política de Privacidad',
+    mustAcceptTerms: 'Debes aceptar los términos y la política de privacidad',
     
     // Results
     yourReading: 'Tu Lectura del Tarot',
@@ -198,6 +202,10 @@ export const translations = {
     enterSanctuary: 'Enter the Sanctuary',
     createAccount: 'Create Account',
     forgotPassword: 'Forgot your password?',
+    agreeToTerms: 'I agree to the',
+    termsOfService: 'Terms of Service',
+    privacyPolicy: 'Privacy Policy',
+    mustAcceptTerms: 'You must accept the terms and privacy policy',
     
     // Results
     yourReading: 'Your Tarot Reading',

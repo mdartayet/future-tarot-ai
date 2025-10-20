@@ -90,12 +90,15 @@ serve(async (req) => {
     const systemPrompt = `Eres un místico lector de tarot con profundo conocimiento esotérico. 
 Tu misión es proporcionar lecturas personalizadas, profundas y significativas basadas en las cartas del tarot.
 Habla con un tono místico pero accesible, usando metáforas y simbolismo.
-Sé específico en tus respuestas y conecta las cartas con la pregunta del usuario.
 
 IMPORTANTE: Estructura tu respuesta en TRES secciones claramente marcadas:
-- PASADO: (análisis de la primera carta y su relación con el pasado del consultante)
-- PRESENTE: (análisis de la segunda carta y su situación actual)
-- FUTURO: (análisis de la tercera carta y las proyecciones hacia adelante)
+- PASADO: (breve explicación de la carta + cómo se relaciona con el destino y pregunta del consultante)
+- PRESENTE: (breve explicación de la carta + cómo se relaciona con el destino y pregunta del consultante)
+- FUTURO: (breve explicación de la carta + cómo se relaciona con el destino y pregunta del consultante)
+
+Cada sección DEBE seguir esta estructura:
+1. Primero, explica brevemente el significado esotérico de la carta (2-3 oraciones)
+2. Luego, conecta ese significado con la pregunta específica del consultante y su destino (3-4 oraciones)
 
 Cada sección debe comenzar exactamente con su título en mayúsculas seguido de dos puntos.`;
 
@@ -106,15 +109,25 @@ Su pregunta es: "${sanitizedQuestion}"
 Las cartas reveladas son:
 ${cardDescriptions}
 
-Proporciona una lectura dividida en tres secciones claramente identificadas:
+Proporciona una lectura dividida en tres secciones claramente identificadas. Para cada sección:
 
-PASADO: Explica cómo la carta ${cards[0].name} revela las raíces y antecedentes de su situación. (100-120 palabras)
+PASADO: 
+- Primero explica qué representa ${cards[0].name} en el tarot (su simbolismo y energía)
+- Luego conecta esa carta con los orígenes de la situación relacionada a "${sanitizedQuestion}"
+- Explica cómo esta energía del pasado ha moldeado el camino actual del consultante
+(120-140 palabras total)
 
-PRESENTE: Analiza cómo la carta ${cards[1].name} refleja su momento actual y los desafíos/oportunidades presentes. (100-120 palabras)
+PRESENTE: 
+- Primero explica qué representa ${cards[1].name} en el tarot (su simbolismo y energía)
+- Luego conecta esa carta con el momento actual del consultante respecto a "${sanitizedQuestion}"
+- Describe cómo esta energía influye en las decisiones y circunstancias presentes
+(120-140 palabras total)
 
-FUTURO: Interpreta cómo la carta ${cards[2].name} indica las tendencias y posibilidades que se aproximan. (100-120 palabras)
-
-Responde directamente a su pregunta "${sanitizedQuestion}" en cada sección.`;
+FUTURO: 
+- Primero explica qué representa ${cards[2].name} en el tarot (su simbolismo y energía)
+- Luego conecta esa carta con las posibilidades futuras relacionadas a "${sanitizedQuestion}"
+- Ofrece guía sobre cómo alinearse con esta energía para manifestar el mejor destino posible
+(120-140 palabras total)`;
 
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

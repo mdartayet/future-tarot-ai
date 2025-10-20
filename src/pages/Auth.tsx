@@ -14,10 +14,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
 import { useLanguage, translations } from "@/hooks/use-language";
+import { passwordSchema } from "@/lib/validation";
 
 const authSchema = z.object({
   email: z.string().email("Email inválido"),
-  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  password: passwordSchema,
   displayName: z.string().min(1, "Nombre requerido").max(50, "Nombre muy largo").optional(),
 });
 
@@ -336,9 +337,14 @@ const Auth = () => {
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••"
                       required
-                      minLength={6}
+                      minLength={8}
                       className="font-crimson"
                     />
+                    <p className="text-xs text-muted-foreground font-crimson">
+                      {language === 'es' 
+                        ? 'Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo' 
+                        : 'Minimum 8 characters including uppercase, lowercase, number and symbol'}
+                    </p>
                   </div>
 
                   <div className="flex items-start space-x-2">

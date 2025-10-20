@@ -13,9 +13,15 @@ const LanguageToggle = () => {
       title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
     >
       {language === 'es' ? (
-        <span className="text-2xl">🇬🇧</span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-xl">🇺🇸</span>
+          <span className="text-sm font-medium">EN</span>
+        </span>
       ) : (
-        <span className="text-2xl">🇪🇸</span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-xl">🇪🇸</span>
+          <span className="text-sm font-medium">ES</span>
+        </span>
       )}
     </Button>
   );

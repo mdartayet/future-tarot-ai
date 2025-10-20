@@ -171,11 +171,11 @@ const Reading = () => {
   };
 
   const handleContinue = () => {
-    // Store cards with their full reading info
+    // Store cards with their full reading info translated
     const cardsForResults = selectedCards.map(card => ({
       name: card.name,
-      meaning: card.meaning,
-      reading: card.fullReading || card.meaning
+      meaning: t.cardMeanings[card.name] || card.meaning,
+      reading: t.cardFullReadings[card.name] || card.fullReading || card.meaning
     }));
     sessionStorage.setItem("selectedCards", JSON.stringify(cardsForResults));
     navigate("/results");

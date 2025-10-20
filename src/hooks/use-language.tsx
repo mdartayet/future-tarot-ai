@@ -70,6 +70,12 @@ export const translations = {
     past: 'Pasado',
     present: 'Presente',
     future: 'Futuro',
+    premiumContent: 'Contenido Premium',
+    unlockFuture: 'Desbloquea tu futuro con la lectura completa',
+    unlockButton: 'Desbloquear Futuro',
+    unlocked: 'Lectura Completa Desbloqueada',
+    newReading: 'Nueva Lectura',
+    wisdom: 'Que la sabiduría ancestral ilumine tu camino...',
     
     // Card names and meanings
     cardNames: {
@@ -95,7 +101,7 @@ export const translations = {
       'El Juicio': 'El Juicio',
       'El Mundo': 'El Mundo',
       'El Loco': 'El Loco',
-    },
+    } as Record<string, string>,
     cardMeanings: {
       'El Mago': 'Poder de manifestación y nuevos comienzos',
       'La Sacerdotisa': 'Intuición y sabiduría interior',
@@ -119,13 +125,12 @@ export const translations = {
       'El Juicio': 'Renacimiento y llamado superior',
       'El Mundo': 'Completitud y logro',
       'El Loco': 'Nuevos viajes y espontaneidad',
-    },
-    premiumContent: 'Contenido Premium',
-    unlockFuture: 'Desbloquea tu futuro con la lectura completa',
-    unlockButton: 'Desbloquear Futuro',
-    unlocked: 'Lectura Completa Desbloqueada',
-    newReading: 'Nueva Lectura',
-    wisdom: 'Que la sabiduría ancestral ilumine tu camino...',
+    } as Record<string, string>,
+    cardFullReadings: {
+      'El Mago': 'El Mago emerge de las sombras ancestrales como el maestro de los elementos y arquitecto de realidades.',
+      'La Sacerdotisa': 'La Sacerdotisa guarda los misterios del velo entre mundos.',
+      'El Loco': 'El Loco salta alegremente al abismo, confiando en que el universo extenderá alas invisibles bajo sus pies.',
+    } as Record<string, string>,
   },
   en: {
     // Header
@@ -176,6 +181,12 @@ export const translations = {
     past: 'Past',
     present: 'Present',
     future: 'Future',
+    premiumContent: 'Premium Content',
+    unlockFuture: 'Unlock your future with the complete reading',
+    unlockButton: 'Unlock Future',
+    unlocked: 'Complete Reading Unlocked',
+    newReading: 'New Reading',
+    wisdom: 'May ancestral wisdom illuminate your path...',
     
     // Card names and meanings
     cardNames: {
@@ -201,7 +212,7 @@ export const translations = {
       'El Juicio': 'Judgement',
       'El Mundo': 'The World',
       'El Loco': 'The Fool',
-    },
+    } as Record<string, string>,
     cardMeanings: {
       'El Mago': 'Power of manifestation and new beginnings',
       'La Sacerdotisa': 'Intuition and inner wisdom',
@@ -225,12 +236,11 @@ export const translations = {
       'El Juicio': 'Rebirth and higher calling',
       'El Mundo': 'Completeness and achievement',
       'El Loco': 'New journeys and spontaneity',
-    },
-    premiumContent: 'Premium Content',
-    unlockFuture: 'Unlock your future with the complete reading',
-    unlockButton: 'Unlock Future',
-    unlocked: 'Complete Reading Unlocked',
-    newReading: 'New Reading',
-    wisdom: 'May ancestral wisdom illuminate your path...',
+    } as Record<string, string>,
+    cardFullReadings: {
+      'El Mago': 'The Magician emerges from the ancestral shadows as master of the elements.',
+      'La Sacerdotisa': 'The High Priestess guards the mysteries of the veil between worlds.',
+      'El Loco': 'The Fool leaps joyfully into the abyss, trusting the universe.',
+    } as Record<string, string>,
   },
 };

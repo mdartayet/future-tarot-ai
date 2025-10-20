@@ -6,6 +6,7 @@ import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
 import TarotCard from "@/components/TarotCard";
 import { useLanguage, translations } from "@/hooks/use-language";
+import { supabase } from "@/integrations/supabase/client";
 
 const TAROT_CARDS = [
   { 
@@ -170,13 +171,47 @@ const Reading = () => {
     }, 2000);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
     // Store cards with their full reading info translated
     const cardsForResults = selectedCards.map(card => ({
       name: card.name,
       meaning: t.cardMeanings[card.name] || card.meaning,
       reading: t.cardFullReadings[card.name] || card.fullReading || card.meaning
     }));
+
+    // Get user data from session storage
+    const userName = sessionStorage.getItem("userName") || '';
+    const userFocus = sessionStorage.getItem("userFocus") || '';
+    const userQuestion = sessionStorage.getItem("userQuestion") || '';
+    const userLanguage = sessionStorage.getItem("userLanguage") || language;
+
+    // Save reading to database
+    const { data, error } = await supabase
+      .from('tarot_readings')
+      .insert({
+        user_id: user.id,
+        user_name: userName,
+        focus: userFocus,
+        question: userQuestion,
+        language: userLanguage,
+        selected_cards: cardsForResults,
+      })
+      .select()
+      .single();
+
+    if (!error && data) {
+      // Store reading ID in session storage
+      sessionStorage.setItem("currentReadingId", data.id);
+    }
+
     sessionStorage.setItem("selectedCards", JSON.stringify(cardsForResults));
     navigate("/results");
   };

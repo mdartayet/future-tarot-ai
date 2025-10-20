@@ -35,6 +35,48 @@ export type Database = {
         }
         Relationships: []
       }
+      tarot_readings: {
+        Row: {
+          ai_reading: string | null
+          created_at: string
+          focus: string
+          id: string
+          is_premium_unlocked: boolean
+          language: string
+          question: string
+          selected_cards: Json
+          updated_at: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          ai_reading?: string | null
+          created_at?: string
+          focus: string
+          id?: string
+          is_premium_unlocked?: boolean
+          language?: string
+          question: string
+          selected_cards: Json
+          updated_at?: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          ai_reading?: string | null
+          created_at?: string
+          focus?: string
+          id?: string
+          is_premium_unlocked?: boolean
+          language?: string
+          question?: string
+          selected_cards?: Json
+          updated_at?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: []
+      }
       user_credits: {
         Row: {
           created_at: string

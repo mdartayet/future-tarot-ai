@@ -30,32 +30,92 @@ const Results = () => {
   const [aiReading, setAiReading] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
+  const [readingId, setReadingId] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    const selectedCards = sessionStorage.getItem("selectedCards");
-    const name = sessionStorage.getItem("userName");
-    const focus = sessionStorage.getItem("userFocus");
-    const question = sessionStorage.getItem("userQuestion") || "";
-    const lang = sessionStorage.getItem("userLanguage") || "es";
+    const loadReading = async () => {
+      // Get current user
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
 
-    if (!selectedCards || !name) {
-      navigate("/");
-      return;
-    }
+      if (!currentUser) {
+        navigate("/auth");
+        return;
+      }
 
-    setCards(JSON.parse(selectedCards));
-    setUserName(name);
-    setUserFocus(focus || "");
-    setUserQuestion(question);
-    setUserLanguage(lang);
+      // Check if we have a reading ID in session storage
+      const storedReadingId = sessionStorage.getItem("currentReadingId");
+      
+      if (storedReadingId) {
+        // Load from database
+        const { data: reading, error } = await supabase
+          .from('tarot_readings')
+          .select('*')
+          .eq('id', storedReadingId)
+          .single();
 
-    // Auto-request AI reading if user has a question
-    if (question && question.trim()) {
-      requestAIReading(name, focus || "", question, JSON.parse(selectedCards), lang);
-    }
+        if (!error && reading) {
+          setReadingId(reading.id);
+          setCards(reading.selected_cards as any[]);
+          setUserName(reading.user_name);
+          setUserFocus(reading.focus);
+          setUserQuestion(reading.question);
+          setUserLanguage(reading.language);
+          setIsPaid(reading.is_premium_unlocked);
+          
+          if (reading.ai_reading) {
+            setAiReading(reading.ai_reading);
+          } else if (reading.question && reading.question.trim()) {
+            // Auto-request AI reading if not already done
+            requestAIReading(
+              reading.user_name,
+              reading.focus,
+              reading.question,
+              reading.selected_cards as any[],
+              reading.language,
+              reading.id
+            );
+          }
+          return;
+        }
+      }
+
+      // Fallback to session storage (for backwards compatibility)
+      const selectedCards = sessionStorage.getItem("selectedCards");
+      const name = sessionStorage.getItem("userName");
+      const focus = sessionStorage.getItem("userFocus");
+      const question = sessionStorage.getItem("userQuestion") || "";
+      const lang = sessionStorage.getItem("userLanguage") || "es";
+
+      if (!selectedCards || !name) {
+        navigate("/");
+        return;
+      }
+
+      setCards(JSON.parse(selectedCards));
+      setUserName(name);
+      setUserFocus(focus || "");
+      setUserQuestion(question);
+      setUserLanguage(lang);
+
+      // Auto-request AI reading if user has a question
+      if (question && question.trim()) {
+        requestAIReading(name, focus || "", question, JSON.parse(selectedCards), lang);
+      }
+    };
+
+    loadReading();
   }, [navigate]);
 
-  const requestAIReading = async (name: string, focus: string, question: string, cardsData: any[], lang: string = "es") => {
+  const requestAIReading = async (
+    name: string,
+    focus: string,
+    question: string,
+    cardsData: any[],
+    lang: string = "es",
+    existingReadingId?: string
+  ) => {
     if (!question || !question.trim()) {
       toast({
         title: language === 'es' ? "Pregunta requerida" : "Question required",
@@ -87,6 +147,15 @@ const Results = () => {
       }
 
       setAiReading(data.response);
+
+      // Update database with AI reading
+      const readingIdToUpdate = existingReadingId || readingId;
+      if (readingIdToUpdate) {
+        await supabase
+          .from('tarot_readings')
+          .update({ ai_reading: data.response })
+          .eq('id', readingIdToUpdate);
+      }
       
       toast({
         title: "✨ Lectura del Oráculo Revelada",
@@ -150,8 +219,17 @@ const Results = () => {
     return sections;
   };
 
-  const handleUnlockPremium = () => {
+  const handleUnlockPremium = async () => {
     setIsPaid(true);
+    
+    // Update database
+    if (readingId) {
+      await supabase
+        .from('tarot_readings')
+        .update({ is_premium_unlocked: true })
+        .eq('id', readingId);
+    }
+    
     toast({
       title: "✨ Lectura Completa Desbloqueada",
       description: "Ahora puedes leer la lectura completa del oráculo",
@@ -367,7 +445,11 @@ const Results = () => {
           <div className="flex gap-4 justify-center">
             <Button
               variant="outline"
-              onClick={() => navigate("/")}
+              onClick={() => {
+                // Clear current reading ID to create a new one
+                sessionStorage.removeItem("currentReadingId");
+                navigate("/");
+              }}
               className="font-cinzel"
             >
               {t.newReading}

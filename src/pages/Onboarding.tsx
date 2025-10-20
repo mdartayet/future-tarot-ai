@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { userInputSchema } from "@/lib/validation";
 import type { User } from "@supabase/supabase-js";
+import logo from "@/assets/logo.png";
 
 const Onboarding = () => {
   const navigate = useNavigate();
@@ -82,10 +83,12 @@ const Onboarding = () => {
           {/* Logo/Header */}
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-mystic flex items-center justify-center animate-glow"
-                   style={{ boxShadow: 'var(--glow-purple)' }}>
-                <Sparkles className="w-12 h-12 text-primary-foreground" />
-              </div>
+              <img 
+                src={logo} 
+                alt="Tarot Futura Logo" 
+                className="w-32 h-32 animate-float drop-shadow-2xl"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(124, 58, 237, 0.5))' }}
+              />
             </div>
             <h1 className="text-5xl font-cinzel font-bold bg-gradient-golden bg-clip-text text-transparent">
               Tarot Futura

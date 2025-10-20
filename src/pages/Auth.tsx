@@ -6,11 +6,11 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Sparkles } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import logo from "@/assets/logo.png";
 
 const authSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -173,10 +173,12 @@ const Auth = () => {
         <div className="w-full max-w-md space-y-8 animate-float">
           <div className="text-center space-y-4">
             <div className="flex justify-center">
-              <div className="w-24 h-24 rounded-full bg-gradient-mystic flex items-center justify-center animate-glow"
-                   style={{ boxShadow: 'var(--glow-purple)' }}>
-                <Sparkles className="w-12 h-12 text-primary-foreground" />
-              </div>
+              <img 
+                src={logo} 
+                alt="Tarot Futura Logo" 
+                className="w-32 h-32 animate-float drop-shadow-2xl"
+                style={{ filter: 'drop-shadow(0 0 20px rgba(124, 58, 237, 0.5))' }}
+              />
             </div>
             <h1 className="text-5xl font-cinzel font-bold bg-gradient-golden bg-clip-text text-transparent">
               Tarot Futura

@@ -245,11 +245,16 @@ const Reading = () => {
                     <TarotCard
                       name={card.name}
                       meaning={card.meaning}
-                      position={index === 0 ? (language === 'es' ? 'past' : 'past') : 
-                               index === 1 ? (language === 'es' ? 'present' : 'present') : 
-                               (language === 'es' ? 'future' : 'future')}
+                      position={index === 0 ? 'past' : index === 1 ? 'present' : 'future'}
                       isRevealed={revealedCards[index]}
                       animationDelay={index * 0.3}
+                      cardNames={t.cardNames}
+                      cardMeanings={t.cardMeanings}
+                      positionLabels={{
+                        past: t.past.toUpperCase(),
+                        present: t.present.toUpperCase(),
+                        future: t.future.toUpperCase()
+                      }}
                     />
                   </div>
                 ))}

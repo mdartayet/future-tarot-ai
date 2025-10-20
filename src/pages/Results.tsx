@@ -347,10 +347,10 @@ const Results = () => {
                   </div>
 
                   <h3 className="text-xl font-cinzel font-bold text-foreground">
-                    {card.name}
+                    {t.cardNames?.[card.name] || card.name}
                   </h3>
                   <p className="text-sm text-primary font-crimson italic">
-                    {card.meaning}
+                    {t.cardMeanings?.[card.name] || card.meaning}
                   </p>
                 </div>
 

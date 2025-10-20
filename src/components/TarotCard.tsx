@@ -9,6 +9,13 @@ interface TarotCardProps {
   isShuffling?: boolean;
   animationDelay?: number;
   className?: string;
+  cardNames?: Record<string, string>;
+  cardMeanings?: Record<string, string>;
+  positionLabels?: {
+    past: string;
+    present: string;
+    future: string;
+  };
 }
 
 const TarotCard = ({ 
@@ -18,13 +25,17 @@ const TarotCard = ({
   isRevealed = false, 
   isShuffling = false,
   animationDelay = 0,
-  className 
-}: TarotCardProps) => {
-  const positionLabels = {
+  className,
+  cardNames,
+  cardMeanings,
+  positionLabels = {
     past: "PASADO",
     present: "PRESENTE",
     future: "FUTURO"
-  };
+  }
+}: TarotCardProps) => {
+  const displayName = cardNames?.[name] || name;
+  const displayMeaning = cardMeanings?.[name] || meaning;
 
   return (
     <div 
@@ -103,11 +114,11 @@ const TarotCard = ({
           {/* Card name */}
           <div className="w-full space-y-2 text-center">
             <h3 className="text-lg font-cinzel font-bold text-purple-900">
-              {name}
+              {displayName}
             </h3>
-            {meaning && (
+            {displayMeaning && (
               <p className="text-xs font-crimson text-purple-700 italic line-clamp-2">
-                {meaning}
+                {displayMeaning}
               </p>
             )}
           </div>

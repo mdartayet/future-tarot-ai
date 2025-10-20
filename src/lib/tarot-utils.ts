@@ -7,5 +7,6 @@ export const getCardImagePath = (cardName: string): string => {
   if (!cardName) return '';
   // Encode the card name to handle special characters like tildes and spaces
   const encodedName = encodeURIComponent(cardName);
-  return `/tarot-cards/${encodedName}.png`;
+  const basePath = import.meta.env.BASE_URL || '/';
+  return `${basePath}tarot-cards/${encodedName}.png`;
 };

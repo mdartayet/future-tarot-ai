@@ -1,21 +1,17 @@
-// Import all tarot card images from public folder using their exact names
-// This creates a mapping of card names to their image URLs
-const imageModules = import.meta.glob<string>('/public/tarot-cards/*.png', { 
-  eager: true,
-  query: '?url',
-  import: 'default'
+// Import all tarot card images from src/assets
+const imageModules = import.meta.glob<{ default: string }>('@/assets/tarot-cards/*.png', { 
+  eager: true
 });
 
 // Create a map for quick lookups
 const cardImageMap = new Map<string, string>();
 
 // Process all imported images
-Object.keys(imageModules).forEach((path) => {
-  // Extract card name from path: "/public/tarot-cards/El Mago.png" -> "El Mago"
+Object.entries(imageModules).forEach(([path, module]) => {
+  // Extract card name from path: "@/assets/tarot-cards/El Mago.png" -> "El Mago"
   const fileName = path.split('/').pop()?.replace('.png', '') || '';
-  const imageUrl = imageModules[path];
-  if (fileName && imageUrl) {
-    cardImageMap.set(fileName, imageUrl);
+  if (fileName && module.default) {
+    cardImageMap.set(fileName, module.default);
   }
 });
 
@@ -27,13 +23,14 @@ Object.keys(imageModules).forEach((path) => {
 export const getCardImagePath = (cardName: string): string => {
   if (!cardName) return '';
   
-  // First try to get from the imported map
+  // Get from the imported map
   const imageUrl = cardImageMap.get(cardName);
   if (imageUrl) {
     return imageUrl;
   }
   
-  // Fallback to direct path with encoding
-  const encodedName = encodeURIComponent(cardName);
-  return `/tarot-cards/${encodedName}.png`;
+  // This shouldn't happen if the card exists
+  console.error(`Carta no encontrada en assets: "${cardName}"`);
+  console.log('Cartas disponibles:', Array.from(cardImageMap.keys()));
+  return '';
 };

@@ -205,10 +205,10 @@ const Results = () => {
                   <div className="space-y-4">
                     <div className="space-y-6">
                       {(() => {
-                        const sections = parseReadingSections(isPaid ? aiReading : getPreviewText(aiReading));
+                        const sections = parseReadingSections(aiReading);
                         return (
                           <>
-                            {/* Pasado Section */}
+                            {/* Pasado Section - Always visible */}
                             {sections.pasado && (
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2">
@@ -224,7 +224,7 @@ const Results = () => {
                               </div>
                             )}
 
-                            {/* Presente Section */}
+                            {/* Presente Section - Always visible */}
                             {sections.presente && (
                               <div className="space-y-3">
                                 <div className="flex items-center gap-2">
@@ -240,25 +240,36 @@ const Results = () => {
                               </div>
                             )}
 
-                            {/* Futuro Section */}
-                            {sections.futuro && (
-                              <div className="space-y-3 relative">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                  <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider">
-                                    🔮 Futuro
-                                  </h4>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                </div>
+                            {/* Futuro Section - Locked until payment */}
+                            <div className="space-y-3 relative">
+                              <div className="flex items-center gap-2">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                  🔮 Futuro
+                                  {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
+                                </h4>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                              </div>
+                              
+                              {isPaid ? (
                                 <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
                                   {sections.futuro}
-                                  {!isPaid && "..."}
                                 </p>
-                                {!isPaid && (
-                                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-purple-900/90 to-transparent" />
-                                )}
-                              </div>
-                            )}
+                              ) : (
+                                <div className="relative min-h-[120px] flex items-center justify-center">
+                                  <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
+                                  <div className="relative z-10 text-center space-y-3 p-6">
+                                    <Crown className="w-12 h-12 text-yellow-500 mx-auto animate-pulse" />
+                                    <p className="text-yellow-500 font-cinzel font-bold text-lg">
+                                      🔒 Contenido Premium
+                                    </p>
+                                    <p className="text-muted-foreground font-crimson text-sm">
+                                      Desbloquea tu futuro con la lectura completa
+                                    </p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </>
                         );
                       })()}
@@ -267,14 +278,14 @@ const Results = () => {
                     {!isPaid && (
                       <div className="text-center pt-4 border-t border-yellow-500/30">
                         <p className="text-muted-foreground font-crimson mb-4 italic">
-                          Desbloquea la lectura completa con el servicio premium
+                          Desbloquea la sección de Futuro con el servicio premium
                         </p>
                         <Button
                           onClick={handleUnlockPremium}
                           className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                         >
                           <Crown className="w-4 h-4 mr-2" />
-                          Desbloquear Lectura Completa
+                          Desbloquear Futuro - €9.99
                         </Button>
                       </div>
                     )}

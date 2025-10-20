@@ -176,7 +176,7 @@ const Auth = () => {
               <img 
                 src={logo} 
                 alt="Tarot Futura Logo" 
-                className="w-32 h-32 animate-float drop-shadow-2xl"
+                className="w-32 h-32 rounded-full animate-float drop-shadow-2xl object-cover"
                 style={{ filter: 'drop-shadow(0 0 20px rgba(124, 58, 237, 0.5))' }}
               />
             </div>

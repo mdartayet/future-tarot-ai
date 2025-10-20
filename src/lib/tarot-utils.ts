@@ -7,6 +7,6 @@ export const getCardImagePath = (cardName: string): string => {
   if (!cardName) return '';
   // Encode the card name to handle special characters like tildes and spaces
   const encodedName = encodeURIComponent(cardName);
-  // Use relative path without leading slash for compatibility with preview
-  return `tarot-cards/${encodedName}.png`;
+  // Public folder assets must use absolute paths starting with /
+  return `/tarot-cards/${encodedName}.png`;
 };

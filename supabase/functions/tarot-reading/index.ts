@@ -76,10 +76,26 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY no está configurada');
     }
 
-    // Sanitize question before AI prompt
+    // Comprehensive sanitization to prevent prompt injection
     const sanitizedQuestion = trimmedQuestion
-      .replace(/[<>]/g, '')
-      .substring(0, 500);
+      // Remove potential command injection patterns
+      .replace(/ignore\s+(all\s+)?previous\s+instructions?/gi, '')
+      .replace(/forget\s+(all\s+)?previous\s+(instructions?|context)/gi, '')
+      .replace(/new\s+instructions?/gi, '')
+      .replace(/system\s+(prompt|instructions?|message)/gi, '')
+      .replace(/act\s+as\s+(a\s+)?different/gi, '')
+      .replace(/you\s+are\s+now/gi, '')
+      .replace(/disregard/gi, '')
+      // Remove markdown/formatting that could break prompt structure
+      .replace(/```[\s\S]*?```/g, '')
+      .replace(/`{1,3}/g, '')
+      // Remove HTML/XML tags
+      .replace(/<[^>]*>/g, '')
+      // Remove excessive special characters that could be used for injection
+      .replace(/[{}[\]]/g, '')
+      // Limit to 500 characters
+      .substring(0, 500)
+      .trim();
 
     // Create prompt for AI
     const cardDescriptions = cards.map((card: any, index: number) => {

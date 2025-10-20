@@ -83,13 +83,15 @@ const TarotCard = ({
                 alt={name}
                 className="w-full h-full object-contain rounded-lg"
                 onLoad={() => {
-                  console.log(`✓ Cargada exitosamente: "${name}"`);
+                  console.log(`✓ Carta cargada: "${name}" desde "${getCardImagePath(name)}"`);
                 }}
                 onError={(e) => {
                   const path = getCardImagePath(name);
-                  console.error(`✗ ERROR cargando: "${name}"`);
-                  console.error(`  Ruta intentada: "${path}"`);
-                  console.error(`  URL completa: "${e.currentTarget.src}"`);
+                  console.error(`❌ ERROR - No se pudo cargar la carta`);
+                  console.error(`   Nombre de carta: "${name}"`);
+                  console.error(`   Ruta generada: "${path}"`);
+                  console.error(`   URL absoluta: "${e.currentTarget.src}"`);
+                  console.error(`   Verifica que el archivo existe exactamente como: public/tarot-cards/${name}.png`);
                   e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                 }}
               />

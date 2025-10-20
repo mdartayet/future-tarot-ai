@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sparkles, Loader2, Crown } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
+import LanguageToggle from "@/components/LanguageToggle";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCardImagePath } from "@/lib/tarot-utils";
+import { useLanguage, translations } from "@/hooks/use-language";
 
 interface TarotCard {
   id: number;
@@ -18,10 +20,13 @@ interface TarotCard {
 const Results = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const t = translations[language];
   const [cards, setCards] = useState<any[]>([]);
   const [userName, setUserName] = useState("");
   const [userFocus, setUserFocus] = useState("");
   const [userQuestion, setUserQuestion] = useState("");
+  const [userLanguage, setUserLanguage] = useState("es");
   const [aiReading, setAiReading] = useState("");
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
@@ -31,6 +36,7 @@ const Results = () => {
     const name = sessionStorage.getItem("userName");
     const focus = sessionStorage.getItem("userFocus");
     const question = sessionStorage.getItem("userQuestion") || "";
+    const lang = sessionStorage.getItem("userLanguage") || "es";
 
     if (!selectedCards || !name) {
       navigate("/");
@@ -41,18 +47,19 @@ const Results = () => {
     setUserName(name);
     setUserFocus(focus || "");
     setUserQuestion(question);
+    setUserLanguage(lang);
 
     // Auto-request AI reading if user has a question
     if (question && question.trim()) {
-      requestAIReading(name, focus || "", question, JSON.parse(selectedCards));
+      requestAIReading(name, focus || "", question, JSON.parse(selectedCards), lang);
     }
   }, [navigate]);
 
-  const requestAIReading = async (name: string, focus: string, question: string, cardsData: any[]) => {
+  const requestAIReading = async (name: string, focus: string, question: string, cardsData: any[], lang: string = "es") => {
     if (!question || !question.trim()) {
       toast({
-        title: "Pregunta requerida",
-        description: "Necesitas ingresar una pregunta para obtener la lectura premium con IA",
+        title: language === 'es' ? "Pregunta requerida" : "Question required",
+        description: language === 'es' ? "Necesitas ingresar una pregunta para obtener la lectura premium con IA" : "You need to enter a question to get the premium AI reading",
         variant: "destructive",
       });
       return;
@@ -67,6 +74,7 @@ const Results = () => {
           focus,
           question,
           cards: cardsData,
+          language: lang,
         }
       });
 
@@ -156,6 +164,9 @@ const Results = () => {
         <div className="max-w-4xl mx-auto space-y-8 animate-float">
           {/* Header */}
           <div className="text-center space-y-4">
+            <div className="flex justify-center items-center gap-4 mb-4">
+              <LanguageToggle />
+            </div>
             <div className="flex justify-center">
               <div
                 className="w-20 h-20 rounded-full bg-gradient-mystic flex items-center justify-center animate-glow"
@@ -165,23 +176,23 @@ const Results = () => {
               </div>
             </div>
             <h1 className="text-4xl font-cinzel font-bold bg-gradient-golden bg-clip-text text-transparent">
-              Tu Lectura del Tarot
+              {t.yourReading}
             </h1>
             <p className="text-muted-foreground text-lg font-crimson">
-              {getFocusEmoji(userFocus)} Para {userName}, sobre {userFocus}
+              {getFocusEmoji(userFocus)} {language === 'es' ? 'Para' : 'For'} {userName}, {language === 'es' ? 'sobre' : 'about'} {userFocus}
             </p>
           </div>
 
           {/* User Question */}
           {userQuestion && (
             <Card className="bg-card/80 backdrop-blur-sm border-border p-6">
-              <div className="flex items-start gap-3">
-                <Crown className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
-                <div className="space-y-2 flex-1">
-                  <h3 className="font-cinzel text-lg text-foreground">Tu Pregunta:</h3>
-                  <p className="font-crimson text-muted-foreground italic">"{userQuestion}"</p>
+                <div className="flex items-start gap-3">
+                  <Crown className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
+                  <div className="space-y-2 flex-1">
+                    <h3 className="font-cinzel text-lg text-foreground">{t.yourQuestion}</h3>
+                    <p className="font-crimson text-muted-foreground italic">"{userQuestion}"</p>
+                  </div>
                 </div>
-              </div>
             </Card>
           )}
 
@@ -191,14 +202,14 @@ const Results = () => {
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Crown className="w-5 h-5 text-yellow-500" />
-                  <h3 className="font-cinzel text-xl text-foreground">Lectura del Oráculo</h3>
+                  <h3 className="font-cinzel text-xl text-foreground">{t.oracleReading}</h3>
                 </div>
                 
                 {isLoadingAI ? (
                   <div className="flex flex-col items-center justify-center py-8 space-y-4">
                     <Loader2 className="w-10 h-10 text-primary animate-spin" />
                     <p className="text-muted-foreground font-crimson italic">
-                      El oráculo está consultando las estrellas...
+                      {t.consulting}
                     </p>
                   </div>
                 ) : aiReading ? (
@@ -214,7 +225,7 @@ const Results = () => {
                                 <div className="flex items-center gap-2">
                                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
                                   <h4 className="font-cinzel text-lg text-yellow-500 uppercase tracking-wider">
-                                    🕰️ Pasado
+                                    🕰️ {t.past}
                                   </h4>
                                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
                                 </div>
@@ -230,7 +241,7 @@ const Results = () => {
                                 <div className="flex items-center gap-2">
                                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                                   <h4 className="font-cinzel text-lg text-purple-400 uppercase tracking-wider">
-                                    ⚡ Presente
+                                    ⚡ {t.present}
                                   </h4>
                                   <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
                                 </div>
@@ -241,35 +252,35 @@ const Results = () => {
                             )}
 
                             {/* Futuro Section - Locked until payment */}
-                            <div className="space-y-3 relative">
-                              <div className="flex items-center gap-2">
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                                  🔮 Futuro
-                                  {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
-                                </h4>
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                              </div>
-                              
-                              {isPaid ? (
-                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
-                                  {sections.futuro}
-                                </p>
-                              ) : (
-                                <div className="relative min-h-[120px] flex items-center justify-center">
-                                  <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
-                                  <div className="relative z-10 text-center space-y-3 p-6">
-                                    <Crown className="w-12 h-12 text-yellow-500 mx-auto animate-pulse" />
-                                    <p className="text-yellow-500 font-cinzel font-bold text-lg">
-                                      🔒 Contenido Premium
-                                    </p>
-                                    <p className="text-muted-foreground font-crimson text-sm">
-                                      Desbloquea tu futuro con la lectura completa
-                                    </p>
-                                  </div>
+                              <div className="space-y-3 relative">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                  <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                    🔮 {t.future}
+                                    {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
+                                  </h4>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
                                 </div>
-                              )}
-                            </div>
+                                
+                                {isPaid ? (
+                                  <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                    {sections.futuro}
+                                  </p>
+                                ) : (
+                                  <div className="relative min-h-[120px] flex items-center justify-center">
+                                    <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
+                                    <div className="relative z-10 text-center space-y-3 p-6">
+                                      <Crown className="w-12 h-12 text-yellow-500 mx-auto animate-pulse" />
+                                      <p className="text-yellow-500 font-cinzel font-bold text-lg">
+                                        🔒 {t.premiumContent}
+                                      </p>
+                                      <p className="text-muted-foreground font-crimson text-sm">
+                                        {t.unlockFuture}
+                                      </p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                           </>
                         );
                       })()}
@@ -278,14 +289,14 @@ const Results = () => {
                     {!isPaid && (
                       <div className="text-center pt-4 border-t border-yellow-500/30">
                         <p className="text-muted-foreground font-crimson mb-4 italic">
-                          Desbloquea la sección de Futuro con el servicio premium
+                          {language === 'es' ? 'Desbloquea la sección de Futuro con el servicio premium' : 'Unlock the Future section with the premium service'}
                         </p>
                         <Button
                           onClick={handleUnlockPremium}
                           className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                         >
                           <Crown className="w-4 h-4 mr-2" />
-                          Desbloquear Futuro - €9.99
+                          {t.unlockButton} - €9.99
                         </Button>
                       </div>
                     )}
@@ -293,11 +304,11 @@ const Results = () => {
                 ) : (
                   <div className="text-center py-4">
                     <Button
-                      onClick={() => requestAIReading(userName, userFocus, userQuestion, cards)}
+                      onClick={() => requestAIReading(userName, userFocus, userQuestion, cards, userLanguage)}
                       className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                     >
                       <Crown className="w-4 h-4 mr-2" />
-                      Obtener Lectura del Oráculo
+                      {language === 'es' ? 'Obtener Lectura del Oráculo' : 'Get Oracle Reading'}
                     </Button>
                   </div>
                 )}
@@ -315,7 +326,7 @@ const Results = () => {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-cinzel text-muted-foreground uppercase tracking-wider">
-                      {index === 0 ? "Pasado" : index === 1 ? "Presente" : "Futuro"}
+                      {index === 0 ? t.past : index === 1 ? t.present : t.future}
                     </span>
                     <div className="w-8 h-8 rounded-full bg-gradient-candle flex items-center justify-center">
                       <span className="text-xs font-bold">{index + 1}</span>
@@ -359,12 +370,12 @@ const Results = () => {
               onClick={() => navigate("/")}
               className="font-cinzel"
             >
-              Nueva Lectura
+              {t.newReading}
             </Button>
           </div>
 
           <p className="text-center text-xs text-muted-foreground font-crimson italic">
-            Que la sabiduría ancestral ilumine tu camino...
+            {t.wisdom}
           </p>
         </div>
       </div>

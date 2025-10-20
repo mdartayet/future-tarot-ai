@@ -39,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    const { userName, focus, question, cards } = await req.json();
+    const { userName, focus, question, cards, language = 'es' } = await req.json();
     
     // Input validation
     if (!question || typeof question !== 'string') {
@@ -83,11 +83,12 @@ serve(async (req) => {
 
     // Create prompt for AI
     const cardDescriptions = cards.map((card: any, index: number) => {
-      const positions = ['Pasado', 'Presente', 'Futuro'];
-      return `${positions[index]}: ${card.name}\nSignificado: ${card.meaning}\nLectura: ${card.reading}`;
+      const positions = language === 'es' ? ['Pasado', 'Presente', 'Futuro'] : ['Past', 'Present', 'Future'];
+      return `${positions[index]}: ${card.name}\n${language === 'es' ? 'Significado' : 'Meaning'}: ${card.meaning}\n${language === 'es' ? 'Lectura' : 'Reading'}: ${card.reading}`;
     }).join('\n\n');
 
-    const systemPrompt = `Eres un místico lector de tarot con profundo conocimiento esotérico. 
+    const systemPrompt = language === 'es' 
+      ? `Eres un místico lector de tarot con profundo conocimiento esotérico. 
 Tu misión es proporcionar lecturas personalizadas, profundas y significativas basadas en las cartas del tarot.
 Habla con un tono místico pero accesible, usando metáforas y simbolismo.
 
@@ -100,9 +101,24 @@ Cada sección DEBE seguir esta estructura:
 1. Primero, explica brevemente el significado esotérico de la carta (2-3 oraciones)
 2. Luego, conecta ese significado con la pregunta específica del consultante y su destino (3-4 oraciones)
 
-Cada sección debe comenzar exactamente con su título en mayúsculas seguido de dos puntos.`;
+Cada sección debe comenzar exactamente con su título en mayúsculas seguido de dos puntos.`
+      : `You are a mystical tarot reader with deep esoteric knowledge.
+Your mission is to provide personalized, profound and meaningful readings based on the tarot cards.
+Speak with a mystical but accessible tone, using metaphors and symbolism.
 
-    const userPrompt = `El viajero ${userName} busca respuestas sobre ${focus}.
+IMPORTANT: Structure your response in THREE clearly marked sections:
+- PAST: (brief explanation of the card + how it relates to the querent's destiny and question)
+- PRESENT: (brief explanation of the card + how it relates to the querent's destiny and question)
+- FUTURE: (brief explanation of the card + how it relates to the querent's destiny and question)
+
+Each section MUST follow this structure:
+1. First, briefly explain the esoteric meaning of the card (2-3 sentences)
+2. Then, connect that meaning to the querent's specific question and destiny (3-4 sentences)
+
+Each section must start exactly with its title in uppercase followed by a colon.`;
+
+    const userPrompt = language === 'es'
+      ? `El viajero ${userName} busca respuestas sobre ${focus}.
 
 Su pregunta es: "${sanitizedQuestion}"
 
@@ -127,7 +143,33 @@ FUTURO:
 - Primero explica qué representa ${cards[2].name} en el tarot (su simbolismo y energía)
 - Luego conecta esa carta con las posibilidades futuras relacionadas a "${sanitizedQuestion}"
 - Ofrece guía sobre cómo alinearse con esta energía para manifestar el mejor destino posible
-(120-140 palabras total)`;
+(120-140 palabras total)`
+      : `The traveler ${userName} seeks answers about ${focus}.
+
+Their question is: "${sanitizedQuestion}"
+
+The revealed cards are:
+${cardDescriptions}
+
+Provide a reading divided into three clearly identified sections. For each section:
+
+PAST: 
+- First explain what ${cards[0].name} represents in tarot (its symbolism and energy)
+- Then connect that card with the origins of the situation related to "${sanitizedQuestion}"
+- Explain how this energy from the past has shaped the querent's current path
+(120-140 words total)
+
+PRESENT: 
+- First explain what ${cards[1].name} represents in tarot (its symbolism and energy)
+- Then connect that card with the querent's current moment regarding "${sanitizedQuestion}"
+- Describe how this energy influences present decisions and circumstances
+(120-140 words total)
+
+FUTURE: 
+- First explain what ${cards[2].name} represents in tarot (its symbolism and energy)
+- Then connect that card with future possibilities related to "${sanitizedQuestion}"
+- Offer guidance on how to align with this energy to manifest the best possible destiny
+(120-140 words total)`;
 
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {

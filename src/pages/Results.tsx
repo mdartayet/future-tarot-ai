@@ -114,6 +114,34 @@ const Results = () => {
     return text.substring(0, halfLength);
   };
 
+  const parseReadingSections = (reading: string) => {
+    const sections = {
+      pasado: "",
+      presente: "",
+      futuro: ""
+    };
+
+    // Try to split by section headers
+    const pasadoMatch = reading.match(/(?:pasado|el pasado)[:\s]+([\s\S]*?)(?=(?:presente|el presente)[:\s]+|$)/i);
+    const presenteMatch = reading.match(/(?:presente|el presente)[:\s]+([\s\S]*?)(?=(?:futuro|el futuro)[:\s]+|$)/i);
+    const futuroMatch = reading.match(/(?:futuro|el futuro)[:\s]+([\s\S]*?)$/i);
+
+    if (pasadoMatch) sections.pasado = pasadoMatch[1].trim();
+    if (presenteMatch) sections.presente = presenteMatch[1].trim();
+    if (futuroMatch) sections.futuro = futuroMatch[1].trim();
+
+    // If no sections found, split into thirds
+    if (!pasadoMatch && !presenteMatch && !futuroMatch) {
+      const lines = reading.split('\n').filter(l => l.trim());
+      const third = Math.ceil(lines.length / 3);
+      sections.pasado = lines.slice(0, third).join('\n');
+      sections.presente = lines.slice(third, third * 2).join('\n');
+      sections.futuro = lines.slice(third * 2).join('\n');
+    }
+
+    return sections;
+  };
+
   const handleUnlockPremium = () => {
     setIsPaid(true);
     toast({
@@ -175,14 +203,65 @@ const Results = () => {
                   </div>
                 ) : aiReading ? (
                   <div className="space-y-4">
-                    <div className="prose prose-invert max-w-none relative">
-                      <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line">
-                        {isPaid ? aiReading : getPreviewText(aiReading)}
-                        {!isPaid && "..."}
-                      </p>
-                      {!isPaid && (
-                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-purple-900/90 to-transparent" />
-                      )}
+                    <div className="space-y-6">
+                      {(() => {
+                        const sections = parseReadingSections(isPaid ? aiReading : getPreviewText(aiReading));
+                        return (
+                          <>
+                            {/* Pasado Section */}
+                            {sections.pasado && (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
+                                  <h4 className="font-cinzel text-lg text-yellow-500 uppercase tracking-wider">
+                                    🕰️ Pasado
+                                  </h4>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
+                                </div>
+                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                  {sections.pasado}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Presente Section */}
+                            {sections.presente && (
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+                                  <h4 className="font-cinzel text-lg text-purple-400 uppercase tracking-wider">
+                                    ⚡ Presente
+                                  </h4>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+                                </div>
+                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                  {sections.presente}
+                                </p>
+                              </div>
+                            )}
+
+                            {/* Futuro Section */}
+                            {sections.futuro && (
+                              <div className="space-y-3 relative">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                  <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider">
+                                    🔮 Futuro
+                                  </h4>
+                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                </div>
+                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                  {sections.futuro}
+                                  {!isPaid && "..."}
+                                </p>
+                                {!isPaid && (
+                                  <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-purple-900/90 to-transparent" />
+                                )}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
                     
                     {!isPaid && (

@@ -50,9 +50,12 @@ const Onboarding = () => {
   };
 
   const handleStart = () => {
+    console.log("handleStart llamado", { name, question, focus, nameLength: name.trim().length, questionLength: question.trim().length });
+    
     const validation = userInputSchema.safeParse({ name, question, focus });
     
     if (!validation.success) {
+      console.error("Validación falló:", validation.error.errors);
       toast({
         title: "Error de validación",
         description: validation.error.errors[0].message,
@@ -164,11 +167,19 @@ const Onboarding = () => {
             <Button
               onClick={handleStart}
               disabled={!name.trim() || !question.trim() || question.length < 10}
-              className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
+              className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ boxShadow: 'var(--glow-purple)' }}
+              title={!name.trim() ? "Ingresa tu nombre" : !question.trim() ? "Escribe una pregunta" : question.length < 10 ? "La pregunta debe tener al menos 10 caracteres" : ""}
             >
               Revelar mi Destino
             </Button>
+            {(!name.trim() || !question.trim() || question.length < 10) && (
+              <p className="text-xs text-amber-400 text-center font-crimson mt-2">
+                {!name.trim() ? "⚠️ Debes ingresar tu nombre" : 
+                 !question.trim() ? "⚠️ Debes escribir una pregunta" : 
+                 "⚠️ La pregunta debe tener al menos 10 caracteres"}
+              </p>
+            )}
           </div>
 
           <p className="text-center text-xs text-muted-foreground font-crimson italic">

@@ -42,6 +42,15 @@ export const translations = {
     warningLength: '⚠️ La pregunta debe tener al menos 10 caracteres',
     footer: 'Las cartas ancestrales te esperan en la penumbra...',
     
+    // Reading
+    welcome: 'Bienvenido',
+    revealCards: 'Las cartas ancestrales revelarán tu',
+    and: 'y',
+    selectCards: 'Selecciona',
+    cards: 'Cartas',
+    shuffleCards: 'Barajar Cartas',
+    revealMessage: 'Revelar el Mensaje',
+    
     // Auth
     authTagline: 'Ingresa al reino de los misterios ancestrales',
     signIn: 'Iniciar Sesión',
@@ -88,6 +97,15 @@ export const translations = {
     warningQuestion: '⚠️ You must write a question',
     warningLength: '⚠️ The question must be at least 10 characters',
     footer: 'The ancestral cards await you in the shadows...',
+    
+    // Reading
+    welcome: 'Welcome',
+    revealCards: 'The ancestral cards will reveal your',
+    and: 'and',
+    selectCards: 'Select',
+    cards: 'Cards',
+    shuffleCards: 'Shuffle Cards',
+    revealMessage: 'Reveal the Message',
     
     // Auth
     authTagline: 'Enter the realm of ancestral mysteries',

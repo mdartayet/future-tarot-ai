@@ -3,7 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Shuffle } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
+import LanguageToggle from "@/components/LanguageToggle";
 import TarotCard from "@/components/TarotCard";
+import { useLanguage, translations } from "@/hooks/use-language";
 
 const TAROT_CARDS = [
   { 
@@ -142,10 +144,12 @@ const TAROT_CARDS = [
 
 const Reading = () => {
   const navigate = useNavigate();
+  const { language } = useLanguage();
+  const t = translations[language];
   const [isShuffling, setIsShuffling] = useState(false);
   const [selectedCards, setSelectedCards] = useState<typeof TAROT_CARDS>([]);
   const [revealedCards, setRevealedCards] = useState<boolean[]>([false, false, false]);
-  const userName = sessionStorage.getItem("userName") || "Buscador";
+  const userName = sessionStorage.getItem("userName") || (language === 'es' ? "Buscador" : "Seeker");
 
   const shuffleCards = () => {
     setIsShuffling(true);
@@ -183,11 +187,14 @@ const Reading = () => {
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-2 pt-8">
+            <div className="flex justify-center items-center gap-4 mb-4">
+              <LanguageToggle />
+            </div>
             <h1 className="text-4xl font-cinzel font-bold text-foreground">
-              Bienvenido, {userName}
+              {t.welcome}, {userName}
             </h1>
             <p className="text-muted-foreground font-crimson text-lg italic">
-              Las cartas ancestrales revelarán tu Pasado, Presente y Futuro
+              {t.revealCards} {t.past}, {t.present} {t.and} {t.future}
             </p>
           </div>
 
@@ -201,7 +208,7 @@ const Reading = () => {
                 style={{ boxShadow: 'var(--glow-purple)' }}
               >
                 <Sparkles className="w-6 h-6 mr-3 animate-glow" />
-                Invocar las Cartas
+                {language === 'es' ? 'Invocar las Cartas' : 'Invoke the Cards'}
               </Button>
             </div>
           )}
@@ -238,7 +245,9 @@ const Reading = () => {
                     <TarotCard
                       name={card.name}
                       meaning={card.meaning}
-                      position={index === 0 ? "past" : index === 1 ? "present" : "future"}
+                      position={index === 0 ? (language === 'es' ? 'past' : 'past') : 
+                               index === 1 ? (language === 'es' ? 'present' : 'present') : 
+                               (language === 'es' ? 'future' : 'future')}
                       isRevealed={revealedCards[index]}
                       animationDelay={index * 0.3}
                     />
@@ -255,7 +264,7 @@ const Reading = () => {
                     style={{ boxShadow: 'var(--glow-gold)' }}
                   >
                     <Shuffle className="w-6 h-6 mr-3" />
-                    Descifrar el Mensaje
+                    {language === 'es' ? 'Descifrar el Mensaje' : 'Decipher the Message'}
                   </Button>
                 </div>
               )}

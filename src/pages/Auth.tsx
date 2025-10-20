@@ -7,10 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import CaveBackground from "@/components/CaveBackground";
+import LanguageToggle from "@/components/LanguageToggle";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import logo from "@/assets/logo.png";
+import { useLanguage, translations } from "@/hooks/use-language";
 
 const authSchema = z.object({
   email: z.string().email("Email inválido"),
@@ -21,6 +23,8 @@ const authSchema = z.object({
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { language } = useLanguage();
+  const t = translations[language];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -172,6 +176,9 @@ const Auth = () => {
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md space-y-8 animate-float">
           <div className="text-center space-y-4">
+            <div className="flex justify-center items-center gap-4 mb-4">
+              <LanguageToggle />
+            </div>
             <div className="flex justify-center">
               <img 
                 src={logo} 
@@ -181,37 +188,37 @@ const Auth = () => {
               />
             </div>
             <h1 className="text-5xl font-cinzel font-bold bg-gradient-golden bg-clip-text text-transparent">
-              Tarot Futura
+              {t.appName}
             </h1>
             <p className="text-muted-foreground text-lg font-crimson italic">
-              Ingresa al reino de los misterios ancestrales
+              {t.authTagline}
             </p>
           </div>
 
           <Card className="bg-card/80 backdrop-blur-sm border border-border p-8">
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
-                <TabsTrigger value="signin" className="font-cinzel">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="signup" className="font-cinzel">Registrarse</TabsTrigger>
+                <TabsTrigger value="signin" className="font-cinzel">{t.signIn}</TabsTrigger>
+                <TabsTrigger value="signup" className="font-cinzel">{t.signUp}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email" className="font-cinzel">Email</Label>
+                    <Label htmlFor="signin-email" className="font-cinzel">{t.email}</Label>
                     <Input
                       id="signin-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="tu@email.com"
+                      placeholder={language === 'es' ? 'tu@email.com' : 'your@email.com'}
                       required
                       className="font-crimson"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password" className="font-cinzel">Contraseña</Label>
+                    <Label htmlFor="signin-password" className="font-cinzel">{t.password}</Label>
                     <Input
                       id="signin-password"
                       type="password"
@@ -228,7 +235,7 @@ const Auth = () => {
                     disabled={isLoading}
                     className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                   >
-                    {isLoading ? "Ingresando..." : "Entrar al Santuario"}
+                    {isLoading ? (language === 'es' ? 'Ingresando...' : 'Signing in...') : t.enterSanctuary}
                   </Button>
 
                   <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
@@ -238,25 +245,29 @@ const Auth = () => {
                         variant="link" 
                         className="w-full text-muted-foreground font-crimson hover:text-foreground"
                       >
-                        ¿Olvidaste tu contraseña?
+                        {t.forgotPassword}
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="bg-card/95 backdrop-blur-sm border-border">
                       <DialogHeader>
-                        <DialogTitle className="font-cinzel text-2xl">Recuperar Contraseña</DialogTitle>
+                        <DialogTitle className="font-cinzel text-2xl">
+                          {language === 'es' ? 'Recuperar Contraseña' : 'Reset Password'}
+                        </DialogTitle>
                         <DialogDescription className="font-crimson">
-                          Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña
+                          {language === 'es' 
+                            ? 'Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña'
+                            : 'Enter your email and we will send you a link to reset your password'}
                         </DialogDescription>
                       </DialogHeader>
                       <form onSubmit={handlePasswordReset} className="space-y-4">
                         <div className="space-y-2">
-                          <Label htmlFor="reset-email" className="font-cinzel">Email</Label>
+                          <Label htmlFor="reset-email" className="font-cinzel">{t.email}</Label>
                           <Input
                             id="reset-email"
                             type="email"
                             value={resetEmail}
                             onChange={(e) => setResetEmail(e.target.value)}
-                            placeholder="tu@email.com"
+                            placeholder={language === 'es' ? 'tu@email.com' : 'your@email.com'}
                             required
                             className="font-crimson"
                           />
@@ -266,7 +277,9 @@ const Auth = () => {
                           disabled={isLoading}
                           className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                         >
-                          {isLoading ? "Enviando..." : "Enviar Enlace"}
+                          {isLoading 
+                            ? (language === 'es' ? 'Enviando...' : 'Sending...') 
+                            : (language === 'es' ? 'Enviar Enlace' : 'Send Link')}
                         </Button>
                       </form>
                     </DialogContent>
@@ -277,13 +290,13 @@ const Auth = () => {
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="font-cinzel">Nombre</Label>
+                    <Label htmlFor="signup-name" className="font-cinzel">{t.name}</Label>
                     <Input
                       id="signup-name"
                       type="text"
                       value={displayName}
                       onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="Tu nombre"
+                      placeholder={language === 'es' ? 'Tu nombre' : 'Your name'}
                       required
                       maxLength={50}
                       className="font-crimson"
@@ -291,20 +304,20 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="font-cinzel">Email</Label>
+                    <Label htmlFor="signup-email" className="font-cinzel">{t.email}</Label>
                     <Input
                       id="signup-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="tu@email.com"
+                      placeholder={language === 'es' ? 'tu@email.com' : 'your@email.com'}
                       required
                       className="font-crimson"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="font-cinzel">Contraseña</Label>
+                    <Label htmlFor="signup-password" className="font-cinzel">{t.password}</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -322,7 +335,7 @@ const Auth = () => {
                     disabled={isLoading}
                     className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
                   >
-                    {isLoading ? "Creando..." : "Crear Cuenta"}
+                    {isLoading ? (language === 'es' ? 'Creando...' : 'Creating...') : t.createAccount}
                   </Button>
                 </form>
               </TabsContent>

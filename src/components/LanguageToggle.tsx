@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/use-language";
-import { Languages } from "lucide-react";
 
 const LanguageToggle = () => {
   const { language, setLanguage } = useLanguage();
@@ -11,9 +10,13 @@ const LanguageToggle = () => {
       size="sm"
       onClick={() => setLanguage(language === 'es' ? 'en' : 'es')}
       className="text-muted-foreground hover:text-foreground font-crimson gap-2"
+      title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
     >
-      <Languages className="w-4 h-4" />
-      <span className="uppercase">{language === 'es' ? 'EN' : 'ES'}</span>
+      {language === 'es' ? (
+        <span className="text-2xl">🇬🇧</span>
+      ) : (
+        <span className="text-2xl">🇪🇸</span>
+      )}
     </Button>
   );
 };

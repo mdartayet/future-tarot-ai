@@ -1,51 +1,28 @@
-// Import all tarot card images directly as ES6 modules
-import ElCarro from '@/assets/tarot-cards/El Carro.png';
-import ElColgado from '@/assets/tarot-cards/El Colgado.png';
-import ElDiablo from '@/assets/tarot-cards/El Diablo.png';
-import ElEmperador from '@/assets/tarot-cards/El Emperador.png';
-import ElErmitano from '@/assets/tarot-cards/El Ermitaño.png';
-import ElHierofante from '@/assets/tarot-cards/El Hierofante.png';
-import ElJuicio from '@/assets/tarot-cards/El Juicio.png';
-import ElLoco from '@/assets/tarot-cards/El Loco.png';
-import ElMago from '@/assets/tarot-cards/El Mago.png';
-import ElMundo from '@/assets/tarot-cards/El Mundo.png';
-import ElSol from '@/assets/tarot-cards/El Sol.png';
-import LaEmperatriz from '@/assets/tarot-cards/La Emperatriz.png';
-import LaEstrella from '@/assets/tarot-cards/La Estrella.png';
-import LaFuerza from '@/assets/tarot-cards/La Fuerza.png';
-import LaJusticia from '@/assets/tarot-cards/La Justicia.png';
-import LaLuna from '@/assets/tarot-cards/La Luna.png';
-import LaMuerte from '@/assets/tarot-cards/La Muerte.png';
-import LaRuedaDeLaFortuna from '@/assets/tarot-cards/La Rueda de la Fortuna.png';
-import LaSacerdotisa from '@/assets/tarot-cards/La Sacerdotisa.png';
-import LaTemplanza from '@/assets/tarot-cards/La Templanza.png';
-import LaTorre from '@/assets/tarot-cards/La Torre.png';
-import LosEnamorados from '@/assets/tarot-cards/Los Enamorados.png';
-
-// Create a static map for reliable lookups
-const cardImageMap: Record<string, string> = {
-  'El Carro': ElCarro,
-  'El Colgado': ElColgado,
-  'El Diablo': ElDiablo,
-  'El Emperador': ElEmperador,
-  'El Ermitaño': ElErmitano,
-  'El Hierofante': ElHierofante,
-  'El Juicio': ElJuicio,
-  'El Loco': ElLoco,
-  'El Mago': ElMago,
-  'El Mundo': ElMundo,
-  'El Sol': ElSol,
-  'La Emperatriz': LaEmperatriz,
-  'La Estrella': LaEstrella,
-  'La Fuerza': LaFuerza,
-  'La Justicia': LaJusticia,
-  'La Luna': LaLuna,
-  'La Muerte': LaMuerte,
-  'La Rueda de la Fortuna': LaRuedaDeLaFortuna,
-  'La Sacerdotisa': LaSacerdotisa,
-  'La Templanza': LaTemplanza,
-  'La Torre': LaTorre,
-  'Los Enamorados': LosEnamorados,
+// Import all tarot card images with safer import paths
+// Using URL-friendly names for imports to avoid issues with spaces
+const images = {
+  'El Carro': new URL('../assets/tarot-cards/El Carro.png', import.meta.url).href,
+  'El Colgado': new URL('../assets/tarot-cards/El Colgado.png', import.meta.url).href,
+  'El Diablo': new URL('../assets/tarot-cards/El Diablo.png', import.meta.url).href,
+  'El Emperador': new URL('../assets/tarot-cards/El Emperador.png', import.meta.url).href,
+  'El Ermitaño': new URL('../assets/tarot-cards/El Ermitaño.png', import.meta.url).href,
+  'El Hierofante': new URL('../assets/tarot-cards/El Hierofante.png', import.meta.url).href,
+  'El Juicio': new URL('../assets/tarot-cards/El Juicio.png', import.meta.url).href,
+  'El Loco': new URL('../assets/tarot-cards/El Loco.png', import.meta.url).href,
+  'El Mago': new URL('../assets/tarot-cards/El Mago.png', import.meta.url).href,
+  'El Mundo': new URL('../assets/tarot-cards/El Mundo.png', import.meta.url).href,
+  'El Sol': new URL('../assets/tarot-cards/El Sol.png', import.meta.url).href,
+  'La Emperatriz': new URL('../assets/tarot-cards/La Emperatriz.png', import.meta.url).href,
+  'La Estrella': new URL('../assets/tarot-cards/La Estrella.png', import.meta.url).href,
+  'La Fuerza': new URL('../assets/tarot-cards/La Fuerza.png', import.meta.url).href,
+  'La Justicia': new URL('../assets/tarot-cards/La Justicia.png', import.meta.url).href,
+  'La Luna': new URL('../assets/tarot-cards/La Luna.png', import.meta.url).href,
+  'La Muerte': new URL('../assets/tarot-cards/La Muerte.png', import.meta.url).href,
+  'La Rueda de la Fortuna': new URL('../assets/tarot-cards/La Rueda de la Fortuna.png', import.meta.url).href,
+  'La Sacerdotisa': new URL('../assets/tarot-cards/La Sacerdotisa.png', import.meta.url).href,
+  'La Templanza': new URL('../assets/tarot-cards/La Templanza.png', import.meta.url).href,
+  'La Torre': new URL('../assets/tarot-cards/La Torre.png', import.meta.url).href,
+  'Los Enamorados': new URL('../assets/tarot-cards/Los Enamorados.png', import.meta.url).href,
 };
 
 /**
@@ -59,14 +36,14 @@ export const getCardImagePath = (cardName: string): string => {
     return '';
   }
   
-  const imagePath = cardImageMap[cardName];
+  const imagePath = images[cardName as keyof typeof images];
   
   if (!imagePath) {
     console.error(`❌ Card not found: "${cardName}"`);
-    console.log('Available cards:', Object.keys(cardImageMap));
+    console.log('Available cards:', Object.keys(images));
     return '';
   }
   
-  console.log(`✅ Card loaded: "${cardName}"`);
+  console.log(`✅ Card loaded: "${cardName}" -> ${imagePath}`);
   return imagePath;
 };

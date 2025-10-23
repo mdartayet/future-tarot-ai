@@ -14,6 +14,7 @@ import { userInputSchema } from "@/lib/validation";
 import type { User } from "@supabase/supabase-js";
 import logo from "@/assets/logo.png";
 import { useLanguage, translations } from "@/hooks/use-language";
+import { logger } from "@/lib/logger";
 
 
 const Onboarding = () => {
@@ -56,12 +57,10 @@ const Onboarding = () => {
   };
 
   const handleStart = () => {
-    console.log("handleStart llamado", { name, question, focus, nameLength: name.trim().length, questionLength: question.trim().length });
-    
     const validation = userInputSchema.safeParse({ name, question, focus });
     
     if (!validation.success) {
-      console.error("Validación falló:", validation.error.errors);
+      logger.debug("Validation failed", validation.error.errors);
       toast({
         title: "Error de validación",
         description: validation.error.errors[0].message,

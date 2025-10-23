@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { Crown, Loader2, AlertCircle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 interface PayPalButtonProps {
   amount: string; // "2.99"
@@ -73,7 +74,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
         
         script.onload = () => {
           if (window.paypal) {
-            console.log('✅ PayPal SDK loaded successfully');
+            logger.debug('✅ PayPal SDK loaded successfully');
             resolve(window.paypal);
           } else {
             reject(new Error('PayPal SDK loaded but window.paypal not available'));
@@ -130,12 +131,12 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           onApprove: async (data: any, actions: any) => {
             try {
               const details = await actions.order.capture();
-              console.log('✅ Payment successful:', details);
+              logger.debug('✅ Payment successful');
               
               // Call success callback
               onSuccess(details);
             } catch (err) {
-              console.error('❌ Error capturing order:', err);
+              logger.error('❌ Error capturing order', err);
               setError(t.error);
               if (onError) onError(err);
             }
@@ -143,22 +144,22 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           
           // Handle errors
           onError: (err: any) => {
-            console.error('❌ PayPal error:', err);
+            logger.error('❌ PayPal error', err);
             setError(t.error);
             if (onError) onError(err);
           },
           
           // Handle cancellation
           onCancel: () => {
-            console.log('ℹ️ Payment cancelled by user');
+            logger.debug('ℹ️ Payment cancelled by user');
           }
         }).render(paypalRef.current);
 
-        console.log('✅ PayPal button rendered successfully');
+        logger.debug('✅ PayPal button rendered successfully');
         setIsLoading(false);
 
       } catch (err) {
-        console.error('❌ Error loading PayPal:', err);
+        logger.error('❌ Error loading PayPal', err);
         setError(t.error);
         setIsLoading(false);
         if (onError) onError(err);

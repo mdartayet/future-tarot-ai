@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCardImagePath } from "@/lib/tarot-utils";
 import { useLanguage, translations } from "@/hooks/use-language";
+import { logger } from "@/lib/logger";
 
 interface TarotCard {
   id: number;
@@ -164,7 +165,7 @@ const Results = () => {
         description: "El oráculo ha respondido tu pregunta",
       });
     } catch (error: any) {
-      console.error('Error requesting AI reading:', error);
+      logger.error('Error requesting AI reading', error);
       toast({
         title: "Error",
         description: error.message || "No se pudo obtener la lectura con IA",
@@ -238,7 +239,7 @@ const Results = () => {
       });
 
       if (error) {
-        console.error('❌ Payment verification error:', error);
+        logger.error('Payment verification error', error);
         throw error;
       }
 
@@ -256,7 +257,7 @@ const Results = () => {
           : "Your future reading has been unlocked. Discover what awaits you!",
       });
     } catch (error) {
-      console.error('❌ Payment processing failed:', error);
+      logger.error('Payment processing failed', error);
       toast({
         title: language === 'es' ? "Error en el Pago" : "Payment Error",
         description: language === 'es' 
@@ -385,8 +386,8 @@ const Results = () => {
                                     <PayPalButton 
                                       amount="2.99"
                                       onSuccess={handlePaymentSuccess}
-                                      onError={(error) => {
-                                        console.error('Payment error:', error);
+                                       onError={(error) => {
+                                        logger.error('Payment error', error);
                                         toast({
                                           title: language === 'es' ? "Error en el pago" : "Payment error",
                                           description: language === 'es' 
@@ -443,8 +444,7 @@ const Results = () => {
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
                       onError={(e) => {
-                        console.error(`Failed to load image for: ${card.name}`);
-                        console.error(`Attempted path: ${getCardImagePath(card.name)}`);
+                        logger.error(`Failed to load card image: ${card.name}`);
                         e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                       }}
                     />

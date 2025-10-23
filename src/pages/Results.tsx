@@ -358,16 +358,17 @@ const Results = () => {
                                     {sections.futuro}
                                   </p>
                                 ) : (
-                                  <div className="relative min-h-[120px] flex items-center justify-center">
+                                  <div className="relative min-h-[200px] flex items-center justify-center">
                                     <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
-                                    <div className="relative z-10 text-center space-y-3 p-6">
+                                    <div className="relative z-10 text-center space-y-4 p-6">
                                       <Crown className="w-12 h-12 text-yellow-500 mx-auto animate-pulse" />
                                       <p className="text-yellow-500 font-cinzel font-bold text-lg">
                                         🔒 {t.premiumContent}
                                       </p>
-                                      <p className="text-muted-foreground font-crimson text-sm">
+                                      <p className="text-muted-foreground font-crimson text-sm mb-4">
                                         {t.unlockFuture}
                                       </p>
+                                      <div id="paypal-container-7NGDMYJA95JNY" className="mt-4"></div>
                                     </div>
                                   </div>
                                 )}
@@ -376,15 +377,6 @@ const Results = () => {
                         );
                       })()}
                     </div>
-                    
-                    {!isPaid && (
-                      <div className="text-center pt-4 border-t border-yellow-500/30">
-                        <p className="text-muted-foreground font-crimson mb-4 italic">
-                          {language === 'es' ? 'Desbloquea la sección de Futuro con el servicio premium' : 'Unlock the Future section with the premium service'}
-                        </p>
-                        <div id="paypal-container-7NGDMYJA95JNY"></div>
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-4">

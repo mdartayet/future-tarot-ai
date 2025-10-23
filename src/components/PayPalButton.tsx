@@ -48,14 +48,18 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
   useEffect(() => {
     const loadPayPalScript = () => {
       return new Promise((resolve, reject) => {
+        console.log('🔍 PayPal Client ID:', PAYPAL_CLIENT_ID ? 'Configured' : 'NOT CONFIGURED');
+        
         // Check if Client ID is configured
         if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
+          console.error('❌ PayPal Client ID is missing or empty');
           reject(new Error('PayPal Client ID not configured'));
           return;
         }
 
         // Check if PayPal is already loaded
         if (window.paypal) {
+          console.log('✅ PayPal SDK already loaded');
           resolve(window.paypal);
           return;
         }
@@ -63,10 +67,13 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
         // Check if script already exists
         const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
         if (existingScript) {
+          console.log('⏳ PayPal script already exists, waiting for load...');
           existingScript.addEventListener('load', () => {
             if (window.paypal) {
+              console.log('✅ PayPal SDK loaded from existing script');
               resolve(window.paypal);
             } else {
+              console.error('❌ PayPal script loaded but window.paypal not available');
               reject(new Error('PayPal failed to load'));
             }
           });
@@ -74,49 +81,60 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
         }
 
         // Create new script
+        console.log('📦 Creating new PayPal script tag...');
         const script = document.createElement('script');
         script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
         script.async = true;
         
         script.onload = () => {
           if (window.paypal) {
-            logger.debug('✅ PayPal SDK loaded successfully');
+            console.log('✅ PayPal SDK loaded successfully');
             resolve(window.paypal);
           } else {
+            console.error('❌ PayPal SDK loaded but window.paypal not available');
             reject(new Error('PayPal SDK loaded but window.paypal not available'));
           }
         };
 
         script.onerror = () => {
+          console.error('❌ Failed to load PayPal SDK script');
           reject(new Error('Failed to load PayPal SDK script'));
         };
 
         document.head.appendChild(script);
+        console.log('📤 PayPal script added to document head');
       });
     };
 
     const renderPayPalButton = async () => {
-      if (!paypalRef.current) return;
+      if (!paypalRef.current) {
+        console.log('⚠️ PayPal ref not available yet');
+        return;
+      }
 
       try {
+        console.log('🚀 Starting PayPal button render...');
         setIsLoading(true);
         setError(null);
 
         // Check if Client ID is configured
         if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
-          logger.error('❌ PayPal Client ID not configured');
+          console.error('❌ PayPal Client ID not configured in renderPayPalButton');
           setError(t.configError);
           setIsLoading(false);
           return;
         }
 
         // Wait for PayPal to load
+        console.log('⏳ Loading PayPal SDK...');
         await loadPayPalScript();
 
         // Clear container
+        console.log('🧹 Clearing PayPal container...');
         paypalRef.current.innerHTML = '';
 
         // Render PayPal Buttons
+        console.log('🎨 Rendering PayPal button...');
         window.paypal.Buttons({
           style: {
             layout: 'vertical',
@@ -128,6 +146,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           
           // Create the order
           createOrder: (data: any, actions: any) => {
+            console.log('💳 Creating PayPal order...');
             return actions.order.create({
               purchase_units: [{
                 description: language === 'es' 
@@ -144,13 +163,14 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           // Handle successful payment
           onApprove: async (data: any, actions: any) => {
             try {
+              console.log('✅ Payment approved, capturing order...');
               const details = await actions.order.capture();
-              logger.debug('✅ Payment successful');
+              console.log('✅ Payment successful:', details);
               
               // Call success callback
               onSuccess(details);
             } catch (err) {
-              logger.error('❌ Error capturing order', err);
+              console.error('❌ Error capturing order:', err);
               setError(t.error);
               if (onError) onError(err);
             }
@@ -158,22 +178,22 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           
           // Handle errors
           onError: (err: any) => {
-            logger.error('❌ PayPal error', err);
+            console.error('❌ PayPal button error:', err);
             setError(t.error);
             if (onError) onError(err);
           },
           
           // Handle cancellation
           onCancel: () => {
-            logger.debug('ℹ️ Payment cancelled by user');
+            console.log('ℹ️ Payment cancelled by user');
           }
         }).render(paypalRef.current);
 
-        logger.debug('✅ PayPal button rendered successfully');
+        console.log('✅ PayPal button rendered successfully');
         setIsLoading(false);
 
       } catch (err) {
-        logger.error('❌ Error loading PayPal', err);
+        console.error('❌ Error in renderPayPalButton:', err);
         setError(t.error);
         setIsLoading(false);
         if (onError) onError(err);
@@ -181,7 +201,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
     };
 
     renderPayPalButton();
-  }, [amount, language, onSuccess, onError, t.error]);
+  }, [amount, language, onSuccess, onError, t.error, t.configError]);
 
   return (
     <div className="w-full max-w-md mx-auto">

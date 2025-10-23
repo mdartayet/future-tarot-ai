@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
-import { Crown, Loader2 } from 'lucide-react';
+import { Crown, Loader2, AlertCircle } from 'lucide-react';
 
 interface PayPalButtonProps {
-  onSuccess: () => void;
+  amount: string; // "2.99"
+  onSuccess: (details: any) => void;
+  onError?: (error: any) => void;
 }
 
 declare global {
@@ -12,28 +14,31 @@ declare global {
   }
 }
 
-const PayPalButton = ({ onSuccess }: PayPalButtonProps) => {
+const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
   const paypalRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { language } = useLanguage();
   
+  // Sandbox Client ID - Para pruebas
+  const PAYPAL_CLIENT_ID = "AY6Q51CkwCCKcJpEshUzI0HU6wnqUjdKnVeO3k7TJZ6feua4UCUJfSqwGZMYPtGyQ2ouIoGP3y9r5SIQ";
+  
   const text = {
     es: {
       title: '🔮 Desbloquea la Lectura del Futuro',
       description: 'Obtén la interpretación completa del oráculo con IA',
-      price: '$2.99 USD',
       loading: 'Cargando método de pago seguro...',
       secure: '🔒 Pago 100% seguro con PayPal',
-      error: 'Error al cargar PayPal. Intenta recargar la página.'
+      error: 'Error al cargar PayPal',
+      configError: '⚠️ PayPal no está configurado. Contacta al administrador.'
     },
     en: {
       title: '🔮 Unlock the Future Reading',
       description: 'Get the complete AI oracle interpretation',
-      price: '$2.99 USD',
       loading: 'Loading secure payment method...',
       secure: '🔒 100% secure payment with PayPal',
-      error: 'Error loading PayPal. Try reloading the page.'
+      error: 'Error loading PayPal',
+      configError: '⚠️ PayPal is not configured. Contact administrator.'
     }
   };
 
@@ -63,7 +68,7 @@ const PayPalButton = ({ onSuccess }: PayPalButtonProps) => {
 
         // Create new script
         const script = document.createElement('script');
-        script.src = 'https://www.paypal.com/sdk/js?client-id=BAAykfaG1Puvzhp8isz8hV9XwKiAMltjJ6JI06JzPc3fV572cQdpoGCMc36VYoIBqguX3wulxXspjYa8g8&components=hosted-buttons&disable-funding=venmo&currency=USD';
+        script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
         script.async = true;
         
         script.onload = () => {
@@ -96,28 +101,72 @@ const PayPalButton = ({ onSuccess }: PayPalButtonProps) => {
         // Clear container
         paypalRef.current.innerHTML = '';
 
-        // Render button
-        if (window.paypal) {
-          window.paypal.HostedButtons({
-            hostedButtonId: "7NGDMYJA95JNY"
-          }).render(paypalRef.current);
+        // Render PayPal Buttons
+        window.paypal.Buttons({
+          style: {
+            layout: 'vertical',
+            color: 'gold',
+            shape: 'rect',
+            label: 'paypal',
+            height: 45
+          },
+          
+          // Create the order
+          createOrder: (data: any, actions: any) => {
+            return actions.order.create({
+              purchase_units: [{
+                description: language === 'es' 
+                  ? 'Lectura del Tarot - Futuro Desbloqueado'
+                  : 'Tarot Reading - Future Unlocked',
+                amount: {
+                  currency_code: 'USD',
+                  value: amount
+                }
+              }]
+            });
+          },
+          
+          // Handle successful payment
+          onApprove: async (data: any, actions: any) => {
+            try {
+              const details = await actions.order.capture();
+              console.log('✅ Payment successful:', details);
+              
+              // Call success callback
+              onSuccess(details);
+            } catch (err) {
+              console.error('❌ Error capturing order:', err);
+              setError(t.error);
+              if (onError) onError(err);
+            }
+          },
+          
+          // Handle errors
+          onError: (err: any) => {
+            console.error('❌ PayPal error:', err);
+            setError(t.error);
+            if (onError) onError(err);
+          },
+          
+          // Handle cancellation
+          onCancel: () => {
+            console.log('ℹ️ Payment cancelled by user');
+          }
+        }).render(paypalRef.current);
 
-          console.log('✅ PayPal button rendered successfully');
-          setIsLoading(false);
+        console.log('✅ PayPal button rendered successfully');
+        setIsLoading(false);
 
-          // Note: PayPal Hosted Buttons handle the transaction automatically
-          // The onSuccess callback would need to be triggered via IPN or webhooks
-          // For now, we'll show a message that the user needs to refresh after payment
-        }
       } catch (err) {
         console.error('❌ Error loading PayPal:', err);
         setError(t.error);
         setIsLoading(false);
+        if (onError) onError(err);
       }
     };
 
     renderPayPalButton();
-  }, [t.error]);
+  }, [amount, language, onSuccess, onError, t.error]);
 
   return (
     <div className="w-full max-w-md mx-auto">
@@ -138,7 +187,7 @@ const PayPalButton = ({ onSuccess }: PayPalButtonProps) => {
           
           <div className="inline-block bg-gradient-to-r from-yellow-500 to-yellow-600 px-8 py-3 rounded-full shadow-lg">
             <span className="text-2xl font-cinzel font-bold text-purple-900">
-              {t.price}
+              ${amount} USD
             </span>
           </div>
         </div>
@@ -155,29 +204,24 @@ const PayPalButton = ({ onSuccess }: PayPalButtonProps) => {
           )}
           
           {error && (
-            <p className="text-sm text-red-400 font-crimson text-center">
-              {error}
-            </p>
+            <div className="flex flex-col items-center gap-2 text-red-400">
+              <AlertCircle className="w-6 h-6" />
+              <p className="text-sm font-crimson text-center">
+                {error}
+              </p>
+            </div>
           )}
           
           <div ref={paypalRef} className={isLoading || error ? 'hidden' : 'w-full'} />
-        </div>
-
-        {/* Important Notice */}
-        <div className="space-y-2 mb-4">
-          <div className="text-center text-xs text-yellow-400/90 font-crimson bg-yellow-500/10 rounded-lg p-3 border border-yellow-500/20">
-            <p className="mb-1">
-              ⚠️ {language === 'es' 
-                ? 'Después de completar el pago, recarga la página para ver tu lectura del futuro.' 
-                : 'After completing payment, reload the page to view your future reading.'}
-            </p>
-          </div>
         </div>
 
         {/* Security notice */}
         <div className="text-center pt-4 border-t border-yellow-500/20">
           <p className="text-xs text-yellow-400/80 font-crimson">
             {t.secure}
+          </p>
+          <p className="text-xs text-yellow-400/60 font-crimson mt-1">
+            {language === 'es' ? '🧪 Modo Sandbox (Pruebas)' : '🧪 Sandbox Mode (Testing)'}
           </p>
         </div>
       </div>

@@ -373,13 +373,14 @@ const Results = () => {
                         <p className="text-muted-foreground font-crimson mb-4 italic">
                           {language === 'es' ? 'Desbloquea la sección de Futuro con el servicio premium' : 'Unlock the Future section with the premium service'}
                         </p>
-                        <Button
-                          onClick={handleUnlockPremium}
-                          className="bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
-                        >
-                          <Crown className="w-4 h-4 mr-2" />
-                          {t.unlockButton} - $2.99
-                        </Button>
+                        <div id="paypal-container-7NGDMYJA95JNY"></div>
+                        <script>
+                          {`
+                            paypal.HostedButtons({
+                              hostedButtonId: "7NGDMYJA95JNY",
+                            }).render("#paypal-container-7NGDMYJA95JNY")
+                          `}
+                        </script>
                       </div>
                     )}
                   </div>

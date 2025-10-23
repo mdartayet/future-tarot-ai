@@ -216,22 +216,28 @@ const Results = () => {
     return sections;
   };
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (paymentDetails: any) => {
+    console.log('💳 Payment completed:', paymentDetails);
+    
     setIsPaid(true);
     
     // Update database
     if (readingId) {
       await supabase
         .from('tarot_readings')
-        .update({ is_premium_unlocked: true })
+        .update({ 
+          is_premium_unlocked: true,
+          payment_id: paymentDetails.id,
+          payment_status: paymentDetails.status
+        })
         .eq('id', readingId);
     }
     
     toast({
-      title: language === 'es' ? "✨ Lectura Completa Desbloqueada" : "✨ Complete Reading Unlocked",
+      title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
       description: language === 'es' 
-        ? "Ahora puedes leer la interpretación completa del futuro" 
-        : "You can now read the complete future interpretation",
+        ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
+        : "Your future reading has been unlocked. Discover what awaits you!",
     });
   };
 
@@ -350,7 +356,20 @@ const Results = () => {
                                 <div className="relative min-h-[200px] flex items-center justify-center py-8">
                                   <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
                                   <div className="relative z-10 w-full">
-                                    <PayPalButton onSuccess={handlePaymentSuccess} />
+                                    <PayPalButton 
+                                      amount="2.99"
+                                      onSuccess={handlePaymentSuccess}
+                                      onError={(error) => {
+                                        console.error('Payment error:', error);
+                                        toast({
+                                          title: language === 'es' ? "Error en el pago" : "Payment error",
+                                          description: language === 'es' 
+                                            ? "Hubo un problema procesando tu pago. Intenta de nuevo." 
+                                            : "There was a problem processing your payment. Please try again.",
+                                          variant: "destructive",
+                                        });
+                                      }}
+                                    />
                                   </div>
                                 </div>
                               )}

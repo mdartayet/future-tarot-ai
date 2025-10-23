@@ -34,6 +34,15 @@ const Results = () => {
   const [readingId, setReadingId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
 
+  // Load PayPal button
+  useEffect(() => {
+    if (!isPaid && aiReading && typeof window !== 'undefined' && (window as any).paypal) {
+      (window as any).paypal.HostedButtons({
+        hostedButtonId: "7NGDMYJA95JNY",
+      }).render("#paypal-container-7NGDMYJA95JNY");
+    }
+  }, [isPaid, aiReading]);
+
   useEffect(() => {
     const loadReading = async () => {
       // Get current user
@@ -374,13 +383,6 @@ const Results = () => {
                           {language === 'es' ? 'Desbloquea la sección de Futuro con el servicio premium' : 'Unlock the Future section with the premium service'}
                         </p>
                         <div id="paypal-container-7NGDMYJA95JNY"></div>
-                        <script>
-                          {`
-                            paypal.HostedButtons({
-                              hostedButtonId: "7NGDMYJA95JNY",
-                            }).render("#paypal-container-7NGDMYJA95JNY")
-                          `}
-                        </script>
                       </div>
                     )}
                   </div>

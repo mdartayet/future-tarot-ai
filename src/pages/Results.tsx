@@ -6,6 +6,7 @@ import { Sparkles, Loader2, Crown } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
 import AdSense from "@/components/AdSense";
+import PayPalButton from "@/components/PayPalButton";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCardImagePath } from "@/lib/tarot-utils";
@@ -33,15 +34,6 @@ const Results = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [readingId, setReadingId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-
-  // Load PayPal button
-  useEffect(() => {
-    if (!isPaid && aiReading && typeof window !== 'undefined' && (window as any).paypal) {
-      (window as any).paypal.HostedButtons({
-        hostedButtonId: "7NGDMYJA95JNY",
-      }).render("#paypal-container-7NGDMYJA95JNY");
-    }
-  }, [isPaid, aiReading]);
 
   useEffect(() => {
     const loadReading = async () => {
@@ -196,11 +188,6 @@ const Results = () => {
     }
   };
 
-  const getPreviewText = (text: string) => {
-    const halfLength = Math.floor(text.length / 2);
-    return text.substring(0, halfLength);
-  };
-
   const parseReadingSections = (reading: string) => {
     const sections = {
       pasado: "",
@@ -209,9 +196,9 @@ const Results = () => {
     };
 
     // Try to split by section headers
-    const pasadoMatch = reading.match(/(?:pasado|el pasado)[:\s]+([\s\S]*?)(?=(?:presente|el presente)[:\s]+|$)/i);
-    const presenteMatch = reading.match(/(?:presente|el presente)[:\s]+([\s\S]*?)(?=(?:futuro|el futuro)[:\s]+|$)/i);
-    const futuroMatch = reading.match(/(?:futuro|el futuro)[:\s]+([\s\S]*?)$/i);
+    const pasadoMatch = reading.match(/(?:pasado|el pasado|past)[:\s]+([\s\S]*?)(?=(?:presente|el presente|present)[:\s]+|$)/i);
+    const presenteMatch = reading.match(/(?:presente|el presente|present)[:\s]+([\s\S]*?)(?=(?:futuro|el futuro|future)[:\s]+|$)/i);
+    const futuroMatch = reading.match(/(?:futuro|el futuro|future)[:\s]+([\s\S]*?)$/i);
 
     if (pasadoMatch) sections.pasado = pasadoMatch[1].trim();
     if (presenteMatch) sections.presente = presenteMatch[1].trim();
@@ -229,7 +216,7 @@ const Results = () => {
     return sections;
   };
 
-  const handleUnlockPremium = async () => {
+  const handlePaymentSuccess = async () => {
     setIsPaid(true);
     
     // Update database
@@ -241,8 +228,10 @@ const Results = () => {
     }
     
     toast({
-      title: "✨ Lectura Completa Desbloqueada",
-      description: "Ahora puedes leer la lectura completa del oráculo",
+      title: language === 'es' ? "✨ Lectura Completa Desbloqueada" : "✨ Complete Reading Unlocked",
+      description: language === 'es' 
+        ? "Ahora puedes leer la interpretación completa del futuro" 
+        : "You can now read the complete future interpretation",
     });
   };
 
@@ -343,36 +332,29 @@ const Results = () => {
                             )}
 
                             {/* Futuro Section - Locked until payment */}
-                              <div className="space-y-3 relative">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                  <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                                    🔮 {t.future}
-                                    {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
-                                  </h4>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                </div>
-                                
-                                {isPaid ? (
-                                  <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
-                                    {sections.futuro}
-                                  </p>
-                                ) : (
-                                  <div className="relative min-h-[200px] flex items-center justify-center">
-                                    <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
-                                    <div className="relative z-10 text-center space-y-4 p-6">
-                                      <Crown className="w-12 h-12 text-yellow-500 mx-auto animate-pulse" />
-                                      <p className="text-yellow-500 font-cinzel font-bold text-lg">
-                                        🔒 {t.premiumContent}
-                                      </p>
-                                      <p className="text-muted-foreground font-crimson text-sm mb-4">
-                                        {t.unlockFuture}
-                                      </p>
-                                      <div id="paypal-container-7NGDMYJA95JNY" className="mt-4"></div>
-                                    </div>
-                                  </div>
-                                )}
+                            <div className="space-y-3 relative">
+                              <div className="flex items-center gap-2">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                  🔮 {t.future}
+                                  {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
+                                </h4>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
                               </div>
+                              
+                              {isPaid ? (
+                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                  {sections.futuro}
+                                </p>
+                              ) : (
+                                <div className="relative min-h-[200px] flex items-center justify-center py-8">
+                                  <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
+                                  <div className="relative z-10 w-full">
+                                    <PayPalButton onSuccess={handlePaymentSuccess} />
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </>
                         );
                       })()}
@@ -448,7 +430,6 @@ const Results = () => {
             <Button
               variant="outline"
               onClick={() => {
-                // Clear current reading ID to create a new one
                 sessionStorage.removeItem("currentReadingId");
                 navigate("/");
               }}

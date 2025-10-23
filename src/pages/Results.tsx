@@ -217,28 +217,54 @@ const Results = () => {
   };
 
   const handlePaymentSuccess = async (paymentDetails: any) => {
-    console.log('💳 Payment completed:', paymentDetails);
-    
-    setIsPaid(true);
-    
-    // Update database
-    if (readingId) {
-      await supabase
-        .from('tarot_readings')
-        .update({ 
-          is_premium_unlocked: true,
-          payment_id: paymentDetails.id,
-          payment_status: paymentDetails.status
-        })
-        .eq('id', readingId);
+    if (!readingId) {
+      toast({
+        title: language === 'es' ? "Error" : "Error",
+        description: language === 'es' 
+          ? "No se pudo encontrar la lectura" 
+          : "Reading not found",
+        variant: "destructive"
+      });
+      return;
     }
-    
-    toast({
-      title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
-      description: language === 'es' 
-        ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
-        : "Your future reading has been unlocked. Discover what awaits you!",
-    });
+
+    try {
+      // Call server-side verification
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: { 
+          orderId: paymentDetails.id,
+          readingId: readingId 
+        }
+      });
+
+      if (error) {
+        console.error('❌ Payment verification error:', error);
+        throw error;
+      }
+
+      if (!data?.success) {
+        throw new Error(data?.error || 'Payment verification failed');
+      }
+
+      // Update local state
+      setIsPaid(true);
+      
+      toast({
+        title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
+        description: language === 'es' 
+          ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
+          : "Your future reading has been unlocked. Discover what awaits you!",
+      });
+    } catch (error) {
+      console.error('❌ Payment processing failed:', error);
+      toast({
+        title: language === 'es' ? "Error en el Pago" : "Payment Error",
+        description: language === 'es' 
+          ? "No se pudo verificar el pago. Por favor contacta soporte." 
+          : "Payment verification failed. Please contact support.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

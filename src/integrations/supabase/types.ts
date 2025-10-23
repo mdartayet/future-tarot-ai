@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          paypal_order_id: string
+          reading_id: string
+          status: string
+          verified_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          paypal_order_id: string
+          reading_id: string
+          status: string
+          verified_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          paypal_order_id?: string
+          reading_id?: string
+          status?: string
+          verified_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_reading_id_fkey"
+            columns: ["reading_id"]
+            isOneToOne: false
+            referencedRelation: "tarot_readings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

@@ -20,8 +20,8 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
   const [error, setError] = useState<string | null>(null);
   const { language } = useLanguage();
   
-  // Sandbox Client ID - Para pruebas
-  const PAYPAL_CLIENT_ID = "AY6Q51CkwCCKcJpEshUzI0HU6wnqUjdKnVeO3k7TJZ6feua4UCUJfSqwGZMYPtGyQ2ouIoGP3y9r5SIQ";
+  // PayPal Client ID from environment variable
+  const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "";
   
   const text = {
     es: {

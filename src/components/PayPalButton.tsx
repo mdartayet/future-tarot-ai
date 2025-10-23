@@ -48,6 +48,12 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
   useEffect(() => {
     const loadPayPalScript = () => {
       return new Promise((resolve, reject) => {
+        // Check if Client ID is configured
+        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
+          reject(new Error('PayPal Client ID not configured'));
+          return;
+        }
+
         // Check if PayPal is already loaded
         if (window.paypal) {
           resolve(window.paypal);
@@ -95,6 +101,14 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Check if Client ID is configured
+        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
+          logger.error('❌ PayPal Client ID not configured');
+          setError(t.configError);
+          setIsLoading(false);
+          return;
+        }
 
         // Wait for PayPal to load
         await loadPayPalScript();

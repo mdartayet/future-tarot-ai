@@ -34,6 +34,8 @@ const Results = () => {
   const [isPaid, setIsPaid] = useState(false);
   const [readingId, setReadingId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const loadReading = async () => {
@@ -151,6 +153,9 @@ const Results = () => {
         title: "✨ Lectura del Oráculo Revelada",
         description: "El oráculo ha respondido tu pregunta",
       });
+
+      // Play the AI reading with text-to-speech
+      playReading(data.response);
     } catch (error: any) {
       console.error('Error requesting AI reading:', error);
       toast({
@@ -192,6 +197,54 @@ const Results = () => {
     }
 
     return sections;
+  };
+
+  const playReading = async (reading: string) => {
+    if (isPlayingAudio && currentAudio) {
+      currentAudio.pause();
+      setCurrentAudio(null);
+      setIsPlayingAudio(false);
+      return;
+    }
+
+    setIsPlayingAudio(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('text-to-speech', {
+        body: { text: reading }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      setCurrentAudio(audio);
+
+      audio.onended = () => {
+        setIsPlayingAudio(false);
+        setCurrentAudio(null);
+      };
+
+      audio.onerror = () => {
+        setIsPlayingAudio(false);
+        setCurrentAudio(null);
+        toast({
+          title: "Error",
+          description: "No se pudo reproducir el audio",
+          variant: "destructive",
+        });
+      };
+
+      await audio.play();
+    } catch (error: any) {
+      console.error('Error playing reading:', error);
+      setIsPlayingAudio(false);
+      toast({
+        title: "Error",
+        description: error.message || "No se pudo generar el audio",
+        variant: "destructive",
+      });
+    }
   };
 
   const handlePaymentSuccess = async (paymentDetails: any) => {

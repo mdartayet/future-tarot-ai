@@ -197,8 +197,30 @@ const Results = () => {
   const handlePaymentSuccess = async (paymentDetails: any) => {
     console.log('💳 Payment completed:', paymentDetails);
     
+    if (!readingId) {
+      console.error('No reading ID available');
+      setIsPaid(true);
+      return;
+    }
+    
     try {
-      // Desbloquear inmediatamente en el frontend
+      // Verificar el pago con el backend
+      console.log('🔍 Verifying payment with backend...');
+      const { data, error } = await supabase.functions.invoke('verify-payment', {
+        body: {
+          orderId: paymentDetails.id,
+          readingId: readingId
+        }
+      });
+
+      if (error) {
+        console.error('Payment verification error', error);
+        throw error;
+      }
+
+      console.log('✅ Payment verified:', data);
+      
+      // Desbloquear en el frontend
       setIsPaid(true);
       
       // Mostrar mensaje de éxito
@@ -208,32 +230,16 @@ const Results = () => {
           ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
           : "Your future reading has been unlocked. Discover what awaits you!",
       });
-      
-      // Intentar actualizar la base de datos (sin bloquear si falla)
-      if (readingId) {
-        try {
-          const { error } = await supabase
-            .from('tarot_readings')
-            .update({ 
-              is_premium_unlocked: true,
-              payment_id: paymentDetails.id,
-              payment_status: paymentDetails.status
-            })
-            .eq('id', readingId);
-          
-          if (error) {
-            console.error('Error updating database:', error);
-          } else {
-            console.log('✅ Database updated successfully');
-          }
-        } catch (dbError) {
-          console.error('Database error:', dbError);
-        }
-      }
-    } catch (error) {
-      console.error('Error in handlePaymentSuccess:', error);
-      // De todas formas desbloquear, ya que el pago fue exitoso
-      setIsPaid(true);
+
+    } catch (error: any) {
+      console.error('Payment processing failed', error);
+      toast({
+        title: language === 'es' ? "Error verificando pago" : "Payment verification error",
+        description: language === 'es' 
+          ? "No se pudo verificar tu pago. Por favor contacta a soporte." 
+          : "Could not verify your payment. Please contact support.",
+        variant: "destructive",
+      });
     }
   };
 

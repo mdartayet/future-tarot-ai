@@ -21,32 +21,35 @@ serve(async (req) => {
     
     if (!authHeader) {
       console.error('❌ No authorization header');
-      throw new Error('No authorization header');
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Create authenticated Supabase client
-    const supabaseClient = createClient(
+    // Create Supabase admin client to verify JWT and get user
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { 
-        global: { 
-          headers: { 
-            Authorization: authHeader 
-          } 
-        } 
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Verify user is authenticated
-    console.log('👤 Verifying user authentication...');
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Extract JWT token from Authorization header
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Verify JWT and get user
+    console.log('👤 Verifying JWT token...');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
     if (userError) {
-      console.error('❌ Authentication error:', userError);
+      console.error('❌ JWT verification error:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
     
     if (!user) {
-      console.error('❌ No user found');
+      console.error('❌ No user found in token');
       return new Response(
         JSON.stringify({ error: 'Unauthorized - No user found' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -144,7 +147,7 @@ serve(async (req) => {
     }
 
     // Verify reading belongs to user
-    const { data: reading, error: readingError } = await supabaseClient
+    const { data: reading, error: readingError } = await supabaseAdmin
       .from('tarot_readings')
       .select('user_id')
       .eq('id', readingId)
@@ -158,11 +161,8 @@ serve(async (req) => {
       );
     }
 
-    // Use service role to insert payment and update reading
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
+    console.log('✅ Reading verified for user');
+
 
     // Check if payment already exists
     const { data: existingPayment } = await supabaseAdmin

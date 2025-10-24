@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/hooks/use-language';
 import { Crown, Loader2, AlertCircle } from 'lucide-react';
-import { logger } from '@/lib/logger';
 
 interface PayPalButtonProps {
-  amount: string; // "2.99"
+  amount: string;
   onSuccess: (details: any) => void;
   onError?: (error: any) => void;
 }
@@ -21,8 +20,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
   const [error, setError] = useState<string | null>(null);
   const { language } = useLanguage();
   
-  // PayPal Client ID from environment variable
-  const PAYPAL_CLIENT_ID = import.meta.env.VITE_PAYPAL_CLIENT_ID || "";
+  const PAYPAL_CLIENT_ID = "AY6Q51CkwCCKcJpEshUzI0HU6wnqUjdKnVeO3k7TJZ6feua4UCUJfSqwGZMYPtGyQ2ouIoGP3y9r5SIQ";
   
   const text = {
     es: {
@@ -31,7 +29,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
       loading: 'Cargando método de pago seguro...',
       secure: '🔒 Pago 100% seguro con PayPal',
       error: 'Error al cargar PayPal',
-      configError: '⚠️ PayPal no está configurado. Contacta al administrador.'
+      sandbox: '🧪 Modo Sandbox (Pruebas)'
     },
     en: {
       title: '🔮 Unlock the Future Reading',
@@ -39,48 +37,38 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
       loading: 'Loading secure payment method...',
       secure: '🔒 100% secure payment with PayPal',
       error: 'Error loading PayPal',
-      configError: '⚠️ PayPal is not configured. Contact administrator.'
+      sandbox: '🧪 Sandbox Mode (Testing)'
     }
   };
 
   const t = text[language];
 
   useEffect(() => {
+    console.log('🚀 Starting PayPal button render...');
+    
     const loadPayPalScript = () => {
       return new Promise((resolve, reject) => {
-        console.log('🔍 PayPal Client ID:', PAYPAL_CLIENT_ID ? 'Configured' : 'NOT CONFIGURED');
+        console.log('⏳ Loading PayPal SDK...');
+        console.log('🔍 PayPal Client ID:', PAYPAL_CLIENT_ID ? 'Configured' : 'Missing');
         
-        // Check if Client ID is configured
-        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
-          console.error('❌ PayPal Client ID is missing or empty');
-          reject(new Error('PayPal Client ID not configured'));
-          return;
-        }
-
-        // Check if PayPal is already loaded
         if (window.paypal) {
           console.log('✅ PayPal SDK already loaded');
           resolve(window.paypal);
           return;
         }
 
-        // Check if script already exists
         const existingScript = document.querySelector('script[src*="paypal.com/sdk"]');
         if (existingScript) {
-          console.log('⏳ PayPal script already exists, waiting for load...');
           existingScript.addEventListener('load', () => {
             if (window.paypal) {
-              console.log('✅ PayPal SDK loaded from existing script');
               resolve(window.paypal);
             } else {
-              console.error('❌ PayPal script loaded but window.paypal not available');
               reject(new Error('PayPal failed to load'));
             }
           });
           return;
         }
 
-        // Create new script
         console.log('📦 Creating new PayPal script tag...');
         const script = document.createElement('script');
         script.src = `https://www.paypal.com/sdk/js?client-id=${PAYPAL_CLIENT_ID}&currency=USD`;
@@ -91,49 +79,31 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
             console.log('✅ PayPal SDK loaded successfully');
             resolve(window.paypal);
           } else {
-            console.error('❌ PayPal SDK loaded but window.paypal not available');
             reject(new Error('PayPal SDK loaded but window.paypal not available'));
           }
         };
 
         script.onerror = () => {
-          console.error('❌ Failed to load PayPal SDK script');
           reject(new Error('Failed to load PayPal SDK script'));
         };
 
-        document.head.appendChild(script);
         console.log('📤 PayPal script added to document head');
+        document.head.appendChild(script);
       });
     };
 
     const renderPayPalButton = async () => {
-      if (!paypalRef.current) {
-        console.log('⚠️ PayPal ref not available yet');
-        return;
-      }
+      if (!paypalRef.current) return;
 
       try {
-        console.log('🚀 Starting PayPal button render...');
         setIsLoading(true);
         setError(null);
 
-        // Check if Client ID is configured
-        if (!PAYPAL_CLIENT_ID || PAYPAL_CLIENT_ID.trim() === '') {
-          console.error('❌ PayPal Client ID not configured in renderPayPalButton');
-          setError(t.configError);
-          setIsLoading(false);
-          return;
-        }
-
-        // Wait for PayPal to load
-        console.log('⏳ Loading PayPal SDK...');
         await loadPayPalScript();
 
-        // Clear container
         console.log('🧹 Clearing PayPal container...');
         paypalRef.current.innerHTML = '';
 
-        // Render PayPal Buttons
         console.log('🎨 Rendering PayPal button...');
         window.paypal.Buttons({
           style: {
@@ -144,7 +114,6 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
             height: 45
           },
           
-          // Create the order
           createOrder: (data: any, actions: any) => {
             console.log('💳 Creating PayPal order...');
             return actions.order.create({
@@ -160,15 +129,15 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
             });
           },
           
-          // Handle successful payment
           onApprove: async (data: any, actions: any) => {
             try {
               console.log('✅ Payment approved, capturing order...');
               const details = await actions.order.capture();
               console.log('✅ Payment successful:', details);
               
-              // Call success callback
+              // Llamar directamente al callback sin verificación adicional
               onSuccess(details);
+              
             } catch (err) {
               console.error('❌ Error capturing order:', err);
               setError(t.error);
@@ -176,14 +145,12 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
             }
           },
           
-          // Handle errors
           onError: (err: any) => {
-            console.error('❌ PayPal button error:', err);
+            console.error('❌ PayPal error:', err);
             setError(t.error);
             if (onError) onError(err);
           },
           
-          // Handle cancellation
           onCancel: () => {
             console.log('ℹ️ Payment cancelled by user');
           }
@@ -193,7 +160,7 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
         setIsLoading(false);
 
       } catch (err) {
-        console.error('❌ Error in renderPayPalButton:', err);
+        console.error('❌ Error loading PayPal:', err);
         setError(t.error);
         setIsLoading(false);
         if (onError) onError(err);
@@ -201,12 +168,11 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
     };
 
     renderPayPalButton();
-  }, [amount, language, onSuccess, onError, t.error, t.configError]);
+  }, [amount, language, onSuccess, onError, t.error]);
 
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="bg-gradient-to-br from-purple-900/60 via-indigo-900/60 to-blue-900/60 backdrop-blur-sm rounded-xl border-2 border-yellow-500/40 p-6 shadow-2xl">
-        {/* Header */}
         <div className="text-center mb-6 space-y-3">
           <div className="flex justify-center">
             <Crown className="w-12 h-12 text-yellow-500 animate-pulse" />
@@ -227,7 +193,6 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           </div>
         </div>
 
-        {/* PayPal Button Container */}
         <div className="min-h-[80px] flex items-center justify-center mb-4">
           {isLoading && !error && (
             <div className="flex flex-col items-center gap-2">
@@ -250,13 +215,12 @@ const PayPalButton = ({ amount, onSuccess, onError }: PayPalButtonProps) => {
           <div ref={paypalRef} className={isLoading || error ? 'hidden' : 'w-full'} />
         </div>
 
-        {/* Security notice */}
         <div className="text-center pt-4 border-t border-yellow-500/20">
           <p className="text-xs text-yellow-400/80 font-crimson">
             {t.secure}
           </p>
           <p className="text-xs text-yellow-400/60 font-crimson mt-1">
-            {language === 'es' ? '🧪 Modo Sandbox (Pruebas)' : '🧪 Sandbox Mode (Testing)'}
+            {t.sandbox}
           </p>
         </div>
       </div>

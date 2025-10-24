@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 
 const BackgroundMusic = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
@@ -18,6 +18,7 @@ const BackgroundMusic = () => {
     const attemptAutoplay = async () => {
       try {
         await audio.play();
+        setIsPlaying(true);
         setHasInteracted(true);
       } catch (error) {
         console.log("Autoplay prevented, user must click to start music");
@@ -37,18 +38,13 @@ const BackgroundMusic = () => {
 
     setHasInteracted(true);
 
-    if (isMuted) {
-      audio.muted = false;
-      setIsMuted(false);
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.muted = true;
-      setIsMuted(true);
-    }
-
-    // Ensure audio is playing
-    if (audio.paused) {
       try {
         await audio.play();
+        setIsPlaying(true);
       } catch (error) {
         console.error("Error playing audio:", error);
       }
@@ -71,12 +67,12 @@ const BackgroundMusic = () => {
         variant="outline"
         size="icon"
         className="fixed bottom-6 right-6 z-50 rounded-full w-12 h-12 shadow-lg bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        aria-label={isMuted ? "Activar música" : "Silenciar música"}
+        aria-label={isPlaying ? "Pausar música" : "Reproducir música"}
       >
-        {isMuted ? (
-          <VolumeX className="h-5 w-5" />
-        ) : (
+        {isPlaying ? (
           <Volume2 className="h-5 w-5" />
+        ) : (
+          <VolumeX className="h-5 w-5" />
         )}
       </Button>
       

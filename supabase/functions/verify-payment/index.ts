@@ -13,9 +13,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('🔍 Starting payment verification...');
+    
     // Get auth header
     const authHeader = req.headers.get('Authorization');
+    console.log('📋 Auth header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('❌ No authorization header');
       throw new Error('No authorization header');
     }
 
@@ -23,18 +28,32 @@ serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
+      { 
+        global: { 
+          headers: { 
+            Authorization: authHeader 
+          } 
+        } 
+      }
     );
 
     // Verify user is authenticated
+    console.log('👤 Verifying user authentication...');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
-    if (userError || !user) {
+    
+    if (userError) {
       console.error('❌ Authentication error:', userError);
+    }
+    
+    if (!user) {
+      console.error('❌ No user found');
       return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
+        JSON.stringify({ error: 'Unauthorized - No user found' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    
+    console.log('✅ User authenticated:', user.id);
 
     // Parse request body
     const { orderId, readingId } = await req.json();

@@ -11,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { getCardImagePath } from "@/lib/tarot-utils";
 import { useLanguage, translations } from "@/hooks/use-language";
-import { logger } from "@/lib/logger";
 
 interface TarotCard {
   id: number;
@@ -38,7 +37,6 @@ const Results = () => {
 
   useEffect(() => {
     const loadReading = async () => {
-      // Get current user
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       setUser(currentUser);
 
@@ -47,11 +45,9 @@ const Results = () => {
         return;
       }
 
-      // Check if we have a reading ID in session storage
       const storedReadingId = sessionStorage.getItem("currentReadingId");
       
       if (storedReadingId) {
-        // Load from database
         const { data: reading, error } = await supabase
           .from('tarot_readings')
           .select('*')
@@ -70,7 +66,6 @@ const Results = () => {
           if (reading.ai_reading) {
             setAiReading(reading.ai_reading);
           } else if (reading.question && reading.question.trim()) {
-            // Auto-request AI reading if not already done
             requestAIReading(
               reading.user_name,
               reading.focus,
@@ -84,7 +79,6 @@ const Results = () => {
         }
       }
 
-      // Fallback to session storage (for backwards compatibility)
       const selectedCards = sessionStorage.getItem("selectedCards");
       const name = sessionStorage.getItem("userName");
       const focus = sessionStorage.getItem("userFocus");
@@ -102,7 +96,6 @@ const Results = () => {
       setUserQuestion(question);
       setUserLanguage(lang);
 
-      // Auto-request AI reading if user has a question
       if (question && question.trim()) {
         requestAIReading(name, focus || "", question, JSON.parse(selectedCards), lang);
       }
@@ -141,17 +134,11 @@ const Results = () => {
         }
       });
 
-      if (error) {
-        throw error;
-      }
-
-      if (data?.error) {
-        throw new Error(data.error);
-      }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       setAiReading(data.response);
 
-      // Update database with AI reading
       const readingIdToUpdate = existingReadingId || readingId;
       if (readingIdToUpdate) {
         await supabase
@@ -165,7 +152,7 @@ const Results = () => {
         description: "El oráculo ha respondido tu pregunta",
       });
     } catch (error: any) {
-      logger.error('Error requesting AI reading', error);
+      console.error('Error requesting AI reading:', error);
       toast({
         title: "Error",
         description: error.message || "No se pudo obtener la lectura con IA",
@@ -178,25 +165,16 @@ const Results = () => {
 
   const getFocusEmoji = (focus: string) => {
     switch (focus) {
-      case "love":
-        return "💜";
-      case "career":
-        return "⭐";
-      case "money":
-        return "✨";
-      default:
-        return "🔮";
+      case "love": return "💜";
+      case "career": return "⭐";
+      case "money": return "✨";
+      default: return "🔮";
     }
   };
 
   const parseReadingSections = (reading: string) => {
-    const sections = {
-      pasado: "",
-      presente: "",
-      futuro: ""
-    };
+    const sections = { pasado: "", presente: "", futuro: "" };
 
-    // Try to split by section headers
     const pasadoMatch = reading.match(/(?:pasado|el pasado|past)[:\s]+([\s\S]*?)(?=(?:presente|el presente|present)[:\s]+|$)/i);
     const presenteMatch = reading.match(/(?:presente|el presente|present)[:\s]+([\s\S]*?)(?=(?:futuro|el futuro|future)[:\s]+|$)/i);
     const futuroMatch = reading.match(/(?:futuro|el futuro|future)[:\s]+([\s\S]*?)$/i);
@@ -205,7 +183,6 @@ const Results = () => {
     if (presenteMatch) sections.presente = presenteMatch[1].trim();
     if (futuroMatch) sections.futuro = futuroMatch[1].trim();
 
-    // If no sections found, split into thirds
     if (!pasadoMatch && !presenteMatch && !futuroMatch) {
       const lines = reading.split('\n').filter(l => l.trim());
       const third = Math.ceil(lines.length / 3);
@@ -217,66 +194,46 @@ const Results = () => {
     return sections;
   };
 
-const handlePaymentSuccess = async (paymentDetails: any) => {
-  console.log('💳 Payment completed:', paymentDetails);
-  
-  try {
-    // Desbloquear inmediatamente en el frontend
-    setIsPaid(true);
+  const handlePaymentSuccess = async (paymentDetails: any) => {
+    console.log('💳 Payment completed:', paymentDetails);
     
-    // Mostrar mensaje de éxito
-    toast({
-      title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
-      description: language === 'es' 
-        ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
-        : "Your future reading has been unlocked. Discover what awaits you!",
-    });
-    
-    // Intentar actualizar la base de datos (sin bloquear si falla)
-    if (readingId) {
-      try {
-        const { error } = await supabase
-          .from('tarot_readings')
-          .update({ 
-            is_premium_unlocked: true,
-            payment_id: paymentDetails.id,
-            payment_status: paymentDetails.status
-          })
-          .eq('id', readingId);
-        
-        if (error) {
-          console.error('Error updating database:', error);
-          // No mostrar error al usuario, el contenido ya está desbloqueado
-        } else {
-          console.log('✅ Database updated successfully');
-        }
-      } catch (dbError) {
-        console.error('Database error:', dbError);
-        // Continuar de todas formas, el usuario ya pagó
-      }
-    }
-  } catch (error) {
-    console.error('Error in handlePaymentSuccess:', error);
-    // De todas formas desbloquear, ya que el pago fue exitoso
-    setIsPaid(true);
-  }
-};
+    try {
+      // Desbloquear inmediatamente en el frontend
+      setIsPaid(true);
       
+      // Mostrar mensaje de éxito
       toast({
         title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
         description: language === 'es' 
           ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
           : "Your future reading has been unlocked. Discover what awaits you!",
       });
+      
+      // Intentar actualizar la base de datos (sin bloquear si falla)
+      if (readingId) {
+        try {
+          const { error } = await supabase
+            .from('tarot_readings')
+            .update({ 
+              is_premium_unlocked: true,
+              payment_id: paymentDetails.id,
+              payment_status: paymentDetails.status
+            })
+            .eq('id', readingId);
+          
+          if (error) {
+            console.error('Error updating database:', error);
+          } else {
+            console.log('✅ Database updated successfully');
+          }
+        } catch (dbError) {
+          console.error('Database error:', dbError);
+        }
+      }
     } catch (error) {
-      logger.error('Payment processing failed', error);
-      toast({
-        title: language === 'es' ? "Error en el Pago" : "Payment Error",
-        description: language === 'es' 
-          ? "No se pudo verificar el pago. Por favor contacta soporte." 
-          : "Payment verification failed. Please contact support.",
-        variant: "destructive"
-      });
+      console.error('Error in handlePaymentSuccess:', error);
+      // De todas formas desbloquear, ya que el pago fue exitoso
+      setIsPaid(true);
     }
   };
 
@@ -284,7 +241,6 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
     <CaveBackground>
       <div className="min-h-screen p-6">
         <div className="max-w-4xl mx-auto space-y-8 animate-float">
-          {/* Header */}
           <div className="text-center space-y-4">
             <div className="flex justify-center items-center gap-4 mb-4">
               <LanguageToggle />
@@ -305,23 +261,20 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
             </p>
           </div>
 
-          {/* AdSense Banner - Top */}
           <AdSense className="my-6" />
 
-          {/* User Question */}
           {userQuestion && (
             <Card className="bg-card/80 backdrop-blur-sm border-border p-6">
-                <div className="flex items-start gap-3">
-                  <Crown className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
-                  <div className="space-y-2 flex-1">
-                    <h3 className="font-cinzel text-lg text-foreground">{t.yourQuestion}</h3>
-                    <p className="font-crimson text-muted-foreground italic">"{userQuestion}"</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <Crown className="w-6 h-6 text-yellow-500 shrink-0 mt-1" />
+                <div className="space-y-2 flex-1">
+                  <h3 className="font-cinzel text-lg text-foreground">{t.yourQuestion}</h3>
+                  <p className="font-crimson text-muted-foreground italic">"{userQuestion}"</p>
                 </div>
+              </div>
             </Card>
           )}
 
-          {/* AI Reading - Premium Feature */}
           {userQuestion && (
             <Card className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-sm border-yellow-500/30 p-6">
               <div className="space-y-4">
@@ -333,90 +286,83 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
                 {isLoadingAI ? (
                   <div className="flex flex-col items-center justify-center py-8 space-y-4">
                     <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                    <p className="text-muted-foreground font-crimson italic">
-                      {t.consulting}
-                    </p>
+                    <p className="text-muted-foreground font-crimson italic">{t.consulting}</p>
                   </div>
                 ) : aiReading ? (
-                  <div className="space-y-4">
-                    <div className="space-y-6">
-                      {(() => {
-                        const sections = parseReadingSections(aiReading);
-                        return (
-                          <>
-                            {/* Pasado Section - Always visible */}
-                            {sections.pasado && (
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
-                                  <h4 className="font-cinzel text-lg text-yellow-500 uppercase tracking-wider">
-                                    🕰️ {t.past}
-                                  </h4>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
-                                </div>
-                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
-                                  {sections.pasado}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Presente Section - Always visible */}
-                            {sections.presente && (
-                              <div className="space-y-3">
-                                <div className="flex items-center gap-2">
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-                                  <h4 className="font-cinzel text-lg text-purple-400 uppercase tracking-wider">
-                                    ⚡ {t.present}
-                                  </h4>
-                                  <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
-                                </div>
-                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
-                                  {sections.presente}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Futuro Section - Locked until payment */}
-                            <div className="space-y-3 relative">
+                  <div className="space-y-6">
+                    {(() => {
+                      const sections = parseReadingSections(aiReading);
+                      return (
+                        <>
+                          {sections.pasado && (
+                            <div className="space-y-3">
                               <div className="flex items-center gap-2">
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
-                                <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
-                                  🔮 {t.future}
-                                  {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
+                                <h4 className="font-cinzel text-lg text-yellow-500 uppercase tracking-wider">
+                                  🕰️ {t.past}
                                 </h4>
-                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-yellow-500/50 to-transparent" />
                               </div>
-                              
-                              {isPaid ? (
-                                <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
-                                  {sections.futuro}
-                                </p>
-                              ) : (
-                                <div className="relative min-h-[200px] flex items-center justify-center py-8">
-                                  <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
-                                  <div className="relative z-10 w-full">
-                                    <PayPalButton 
-                                      amount="2.99"
-                                      onSuccess={handlePaymentSuccess}
-                                       onError={(error) => {
-                                        logger.error('Payment error', error);
-                                        toast({
-                                          title: language === 'es' ? "Error en el pago" : "Payment error",
-                                          description: language === 'es' 
-                                            ? "Hubo un problema procesando tu pago. Intenta de nuevo." 
-                                            : "There was a problem processing your payment. Please try again.",
-                                          variant: "destructive",
-                                        });
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-                              )}
+                              <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                {sections.pasado}
+                              </p>
                             </div>
-                          </>
-                        );
-                      })()}
-                    </div>
+                          )}
+
+                          {sections.presente && (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-2">
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+                                <h4 className="font-cinzel text-lg text-purple-400 uppercase tracking-wider">
+                                  ⚡ {t.present}
+                                </h4>
+                                <div className="h-px flex-1 bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+                              </div>
+                              <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                {sections.presente}
+                              </p>
+                            </div>
+                          )}
+
+                          <div className="space-y-3 relative">
+                            <div className="flex items-center gap-2">
+                              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                              <h4 className="font-cinzel text-lg text-blue-400 uppercase tracking-wider flex items-center gap-2">
+                                🔮 {t.future}
+                                {!isPaid && <Crown className="w-5 h-5 text-yellow-500" />}
+                              </h4>
+                              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+                            </div>
+                            
+                            {isPaid ? (
+                              <p className="text-foreground font-crimson leading-relaxed whitespace-pre-line pl-4">
+                                {sections.futuro}
+                              </p>
+                            ) : (
+                              <div className="relative min-h-[200px] flex items-center justify-center py-8">
+                                <div className="absolute inset-0 backdrop-blur-md bg-gradient-to-br from-purple-900/70 to-blue-900/70 rounded-lg border-2 border-yellow-500/30" />
+                                <div className="relative z-10 w-full">
+                                  <PayPalButton 
+                                    amount="2.99"
+                                    onSuccess={handlePaymentSuccess}
+                                    onError={(error) => {
+                                      console.error('Payment error:', error);
+                                      toast({
+                                        title: language === 'es' ? "Error en el pago" : "Payment error",
+                                        description: language === 'es' 
+                                          ? "Hubo un problema procesando tu pago. Intenta de nuevo." 
+                                          : "There was a problem processing your payment. Please try again.",
+                                        variant: "destructive",
+                                      });
+                                    }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 ) : (
                   <div className="text-center py-4">
@@ -433,13 +379,9 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
             </Card>
           )}
 
-          {/* Cards Grid */}
           <div className="grid md:grid-cols-3 gap-6">
             {cards.map((card, index) => (
-              <Card
-                key={index}
-                className="bg-card/80 backdrop-blur-sm border-border p-6 space-y-4"
-              >
+              <Card key={index} className="bg-card/80 backdrop-blur-sm border-border p-6 space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-cinzel text-muted-foreground uppercase tracking-wider">
@@ -456,7 +398,7 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
                       alt={card.name}
                       className="w-full h-full object-contain rounded-lg"
                       onError={(e) => {
-                        logger.error(`Failed to load card image: ${card.name}`);
+                        console.error(`Failed to load card image: ${card.name}`);
                         e.currentTarget.src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="300"><rect width="200" height="300" fill="%23ccc"/><text x="50%" y="50%" text-anchor="middle" fill="%23666">🔮</text></svg>';
                       }}
                     />
@@ -479,10 +421,8 @@ const handlePaymentSuccess = async (paymentDetails: any) => {
             ))}
           </div>
 
-          {/* AdSense Banner - Bottom */}
           <AdSense className="my-6" />
 
-          {/* Actions */}
           <div className="flex gap-4 justify-center">
             <Button
               variant="outline"

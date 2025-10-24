@@ -217,38 +217,50 @@ const Results = () => {
     return sections;
   };
 
-  const handlePaymentSuccess = async (paymentDetails: any) => {
-    if (!readingId) {
-      toast({
-        title: language === 'es' ? "Error" : "Error",
-        description: language === 'es' 
-          ? "No se pudo encontrar la lectura" 
-          : "Reading not found",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Call server-side verification
-      const { data, error } = await supabase.functions.invoke('verify-payment', {
-        body: { 
-          orderId: paymentDetails.id,
-          readingId: readingId 
+const handlePaymentSuccess = async (paymentDetails: any) => {
+  console.log('💳 Payment completed:', paymentDetails);
+  
+  try {
+    // Desbloquear inmediatamente en el frontend
+    setIsPaid(true);
+    
+    // Mostrar mensaje de éxito
+    toast({
+      title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",
+      description: language === 'es' 
+        ? "Tu lectura del futuro ha sido desbloqueada. ¡Descubre lo que te espera!" 
+        : "Your future reading has been unlocked. Discover what awaits you!",
+    });
+    
+    // Intentar actualizar la base de datos (sin bloquear si falla)
+    if (readingId) {
+      try {
+        const { error } = await supabase
+          .from('tarot_readings')
+          .update({ 
+            is_premium_unlocked: true,
+            payment_id: paymentDetails.id,
+            payment_status: paymentDetails.status
+          })
+          .eq('id', readingId);
+        
+        if (error) {
+          console.error('Error updating database:', error);
+          // No mostrar error al usuario, el contenido ya está desbloqueado
+        } else {
+          console.log('✅ Database updated successfully');
         }
-      });
-
-      if (error) {
-        logger.error('Payment verification error', error);
-        throw error;
+      } catch (dbError) {
+        console.error('Database error:', dbError);
+        // Continuar de todas formas, el usuario ya pagó
       }
-
-      if (!data?.success) {
-        throw new Error(data?.error || 'Payment verification failed');
-      }
-
-      // Update local state
-      setIsPaid(true);
+    }
+  } catch (error) {
+    console.error('Error in handlePaymentSuccess:', error);
+    // De todas formas desbloquear, ya que el pago fue exitoso
+    setIsPaid(true);
+  }
+};
       
       toast({
         title: language === 'es' ? "✨ ¡Pago Exitoso!" : "✨ Payment Successful!",

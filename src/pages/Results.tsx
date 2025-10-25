@@ -210,8 +210,28 @@ const Results = () => {
     setIsPlayingAudio(true);
 
     try {
+      // Parse reading sections
+      const sections = parseReadingSections(reading);
+      
+      // Only read unlocked sections
+      let textToRead = '';
+      if (isPaid) {
+        // Read everything if paid
+        textToRead = reading;
+      } else {
+        // Only read past and present if not paid
+        textToRead = `${sections.pasado ? 'Pasado: ' + sections.pasado : ''} ${sections.presente ? 'Presente: ' + sections.presente : ''}`.trim();
+        
+        if (!textToRead) {
+          textToRead = reading.split('futuro')[0] || reading.substring(0, reading.length / 2);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('text-to-speech', {
-        body: { text: reading }
+        body: { 
+          text: textToRead,
+          language: userLanguage 
+        }
       });
 
       if (error) throw error;

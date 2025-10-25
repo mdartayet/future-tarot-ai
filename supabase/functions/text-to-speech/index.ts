@@ -11,7 +11,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json();
+    const { text, language = 'es' } = await req.json();
     
     if (!text) {
       throw new Error('Text is required');
@@ -22,9 +22,22 @@ serve(async (req) => {
       throw new Error('Google Cloud API key not configured');
     }
 
-    console.log('Generating speech for text:', text.substring(0, 100));
+    console.log(`Generating whispering speech for text (${language}):`, text.substring(0, 100));
 
-    // Using Google Cloud Text-to-Speech API with a soft, whispering female voice
+    // Voice selection based on language
+    const voiceConfig = language === 'en' 
+      ? {
+          languageCode: 'en-US',
+          name: 'en-US-Neural2-F', // Soft female voice in English
+          ssmlGender: 'FEMALE'
+        }
+      : {
+          languageCode: 'es-ES',
+          name: 'es-ES-Neural2-A', // Soft female voice in Spanish
+          ssmlGender: 'FEMALE'
+        };
+
+    // Using Google Cloud Text-to-Speech API with whispering effect
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
       {
@@ -34,16 +47,13 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           input: { text },
-          voice: {
-            languageCode: 'es-ES',
-            name: 'es-ES-Neural2-A', // Female voice
-            ssmlGender: 'FEMALE'
-          },
+          voice: voiceConfig,
           audioConfig: {
             audioEncoding: 'MP3',
-            speakingRate: 0.85, // Slightly slower for whisper effect
-            pitch: -2.0, // Lower pitch for intimate, whispering tone
-            volumeGainDb: -5.0 // Softer volume
+            speakingRate: 0.75, // Slower for whisper effect
+            pitch: -4.0, // Lower pitch for intimate, whispering tone
+            volumeGainDb: -8.0, // Much softer volume for whisper
+            effectsProfileId: ['headphone-class-device'] // Optimized for close listening
           }
         })
       }

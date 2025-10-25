@@ -17,72 +17,52 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const apiKey = Deno.env.get('GOOGLE_CLOUD_API_KEY');
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
     if (!apiKey) {
-      throw new Error('Google Cloud API key not configured');
+      throw new Error('OpenAI API key not configured');
     }
 
     console.log(`Generating mysterious whispering speech (${language}):`, text.substring(0, 100));
 
-    // Use SSML for better whisper effect
-    const ssmlText = `<speak>
-      <prosody rate="slow" pitch="-5st" volume="loud">
-        <amazon:effect name="whispered">
-          ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
-        </amazon:effect>
-      </prosody>
-    </speak>`;
-
-    // Voice selection - using deeper, more mysterious female voices
-    const voiceConfig = language === 'en' 
-      ? {
-          languageCode: 'en-US',
-          name: 'en-US-Neural2-C',
-          ssmlGender: 'FEMALE'
-        }
-      : {
-          languageCode: 'es-ES', 
-          name: 'es-ES-Neural2-E',
-          ssmlGender: 'FEMALE'
-        };
-
+    // Select voice based on language - using whispery, mysterious voices
+    const voice = language === 'en' ? 'nova' : 'shimmer'; // nova for English, shimmer for Spanish
+    
+    // Using OpenAI Text-to-Speech API
     const response = await fetch(
-      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
+      'https://api.openai.com/v1/audio/speech',
       {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: { ssml: ssmlText },
-          voice: voiceConfig,
-          audioConfig: {
-            audioEncoding: 'MP3',
-            speakingRate: 0.65,
-            pitch: -8.0,
-            volumeGainDb: 8.0,
-            effectsProfileId: ['headphone-class-device']
-          }
+          model: 'tts-1-hd', // High quality model
+          input: text,
+          voice: voice,
+          speed: 0.75 // Slower for mysterious whisper effect
         })
       }
     );
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Google TTS API error:', error);
+      console.error('OpenAI TTS API error:', error);
       throw new Error(`Failed to generate speech: ${error}`);
     }
 
-    const data = await response.json();
+    // Get audio as array buffer
+    const audioBuffer = await response.arrayBuffer();
     
-    if (!data.audioContent) {
-      throw new Error('No audio content received');
-    }
+    // Convert to base64
+    const base64Audio = btoa(
+      String.fromCharCode(...new Uint8Array(audioBuffer))
+    );
 
     console.log('Speech generated successfully');
 
     return new Response(
-      JSON.stringify({ audioContent: data.audioContent }),
+      JSON.stringify({ audioContent: base64Audio }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }

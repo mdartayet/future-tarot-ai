@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, Loader2, Crown } from "lucide-react";
+import { Sparkles, Loader2, Crown, Volume2, VolumeX } from "lucide-react";
 import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
 import AdSense from "@/components/AdSense";
@@ -153,9 +153,6 @@ const Results = () => {
         title: "✨ Lectura del Oráculo Revelada",
         description: "El oráculo ha respondido tu pregunta",
       });
-
-      // Play the AI reading with text-to-speech
-      playReading(data.response);
     } catch (error: any) {
       console.error('Error requesting AI reading:', error);
       toast({
@@ -357,9 +354,32 @@ const Results = () => {
           {userQuestion && (
             <Card className="bg-gradient-to-br from-purple-900/50 to-indigo-900/50 backdrop-blur-sm border-yellow-500/30 p-6">
               <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Crown className="w-5 h-5 text-yellow-500" />
-                  <h3 className="font-cinzel text-xl text-foreground">{t.oracleReading}</h3>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-5 h-5 text-yellow-500" />
+                    <h3 className="font-cinzel text-xl text-foreground">{t.oracleReading}</h3>
+                  </div>
+                  {!isLoadingAI && aiReading && (
+                    <Button
+                      onClick={() => playReading(aiReading)}
+                      variant="outline"
+                      size="sm"
+                      className="gap-2"
+                      disabled={isPlayingAudio}
+                    >
+                      {isPlayingAudio ? (
+                        <>
+                          <VolumeX className="w-4 h-4" />
+                          {language === 'es' ? 'Detener' : 'Stop'}
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-4 h-4" />
+                          {language === 'es' ? 'Léelo por mí' : 'Read it for me'}
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
                 
                 {isLoadingAI ? (

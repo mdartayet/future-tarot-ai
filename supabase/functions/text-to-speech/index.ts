@@ -17,47 +17,52 @@ serve(async (req) => {
       throw new Error('Text is required');
     }
 
-    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    const apiKey = Deno.env.get('GOOGLE_AI_STUDIO_API_KEY');
     if (!apiKey) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('Google AI Studio API key not configured');
     }
 
     console.log(`Generating mysterious whispering speech (${language}):`, text.substring(0, 100));
 
-    // Select voice based on language - using whispery, mysterious voices
-    const voice = language === 'en' ? 'nova' : 'shimmer'; // nova for English, shimmer for Spanish
+    // Select voice based on language
+    const voiceName = language === 'en' ? 'en-US-Journey-F' : 'es-ES-Journey-F';
     
-    // Using OpenAI Text-to-Speech API
+    // Using Google AI Studio Text-to-Speech API
     const response = await fetch(
-      'https://api.openai.com/v1/audio/speech',
+      `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'tts-1-hd', // High quality model
-          input: text,
-          voice: voice,
-          speed: 0.75 // Slower for mysterious whisper effect
+          input: { text: text },
+          voice: {
+            languageCode: language === 'en' ? 'en-US' : 'es-ES',
+            name: voiceName
+          },
+          audioConfig: {
+            audioEncoding: 'MP3',
+            speakingRate: 0.75,
+            pitch: -2.0
+          }
         })
       }
     );
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI TTS API error:', error);
+      console.error('Google AI Studio TTS API error:', error);
       throw new Error(`Failed to generate speech: ${error}`);
     }
 
-    // Get audio as array buffer
-    const audioBuffer = await response.arrayBuffer();
+    const data = await response.json();
     
-    // Convert to base64
-    const base64Audio = btoa(
-      String.fromCharCode(...new Uint8Array(audioBuffer))
-    );
+    if (!data.audioContent) {
+      throw new Error('No audio content received from Google AI Studio');
+    }
+
+    const base64Audio = data.audioContent;
 
     console.log('Speech generated successfully');
 

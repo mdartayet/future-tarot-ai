@@ -24,20 +24,20 @@ serve(async (req) => {
 
     console.log(`Generating whispering speech for text (${language}):`, text.substring(0, 100));
 
-    // Voice selection based on language
+    // Voice selection based on language - using deeper, more mysterious voices
     const voiceConfig = language === 'en' 
       ? {
           languageCode: 'en-US',
-          name: 'en-US-Neural2-F', // Soft female voice in English
+          name: 'en-US-Neural2-C', // Deeper female voice in English
           ssmlGender: 'FEMALE'
         }
       : {
           languageCode: 'es-ES',
-          name: 'es-ES-Neural2-A', // Soft female voice in Spanish
+          name: 'es-ES-Neural2-E', // Deeper female voice in Spanish
           ssmlGender: 'FEMALE'
         };
 
-    // Using Google Cloud Text-to-Speech API with whispering effect
+    // Using Google Cloud Text-to-Speech API with mysterious whispering effect
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
       {
@@ -50,9 +50,9 @@ serve(async (req) => {
           voice: voiceConfig,
           audioConfig: {
             audioEncoding: 'MP3',
-            speakingRate: 0.75, // Slower for whisper effect
-            pitch: -4.0, // Lower pitch for intimate, whispering tone
-            volumeGainDb: -8.0, // Much softer volume for whisper
+            speakingRate: 0.70, // Much slower for mysterious whisper effect
+            pitch: -6.0, // Much lower pitch for deep, mysterious tone
+            volumeGainDb: 6.0, // Increased volume to be heard over music
             effectsProfileId: ['headphone-class-device'] // Optimized for close listening
           }
         })

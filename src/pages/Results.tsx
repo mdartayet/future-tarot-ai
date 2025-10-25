@@ -201,6 +201,8 @@ const Results = () => {
       currentAudio.pause();
       setCurrentAudio(null);
       setIsPlayingAudio(false);
+      // Restore background music volume
+      window.dispatchEvent(new CustomEvent('duckBackgroundMusic', { detail: { duck: false } }));
       return;
     }
 
@@ -234,17 +236,25 @@ const Results = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
+      // Lower background music volume while speaking
+      window.dispatchEvent(new CustomEvent('duckBackgroundMusic', { detail: { duck: true } }));
+
       const audio = new Audio(`data:audio/mp3;base64,${data.audioContent}`);
+      audio.volume = 1.0; // Full volume for the voice
       setCurrentAudio(audio);
 
       audio.onended = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
+        // Restore background music volume
+        window.dispatchEvent(new CustomEvent('duckBackgroundMusic', { detail: { duck: false } }));
       };
 
       audio.onerror = () => {
         setIsPlayingAudio(false);
         setCurrentAudio(null);
+        // Restore background music volume
+        window.dispatchEvent(new CustomEvent('duckBackgroundMusic', { detail: { duck: false } }));
         toast({
           title: "Error",
           description: "No se pudo reproducir el audio",
@@ -256,6 +266,8 @@ const Results = () => {
     } catch (error: any) {
       console.error('Error playing reading:', error);
       setIsPlayingAudio(false);
+      // Restore background music volume
+      window.dispatchEvent(new CustomEvent('duckBackgroundMusic', { detail: { duck: false } }));
       toast({
         title: "Error",
         description: error.message || "No se pudo generar el audio",

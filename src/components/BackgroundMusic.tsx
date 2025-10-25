@@ -6,13 +6,33 @@ const BackgroundMusic = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
+  const [originalVolume] = useState(0.15);
+
+  // Expose method to duck volume when voice is playing
+  useEffect(() => {
+    const handleDuckVolume = (event: CustomEvent) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      
+      if (event.detail.duck) {
+        audio.volume = 0.03; // Lower to 3% when voice is playing
+      } else {
+        audio.volume = originalVolume; // Restore to 15%
+      }
+    };
+
+    window.addEventListener('duckBackgroundMusic' as any, handleDuckVolume);
+    return () => {
+      window.removeEventListener('duckBackgroundMusic' as any, handleDuckVolume);
+    };
+  }, [originalVolume]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Set volume low (0.15 = 15% volume)
-    audio.volume = 0.15;
+    // Set volume low (15% volume)
+    audio.volume = originalVolume;
 
     // Try to play automatically
     const attemptAutoplay = async () => {

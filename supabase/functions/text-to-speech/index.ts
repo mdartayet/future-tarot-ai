@@ -22,22 +22,30 @@ serve(async (req) => {
       throw new Error('Google Cloud API key not configured');
     }
 
-    console.log(`Generating whispering speech for text (${language}):`, text.substring(0, 100));
+    console.log(`Generating mysterious whispering speech (${language}):`, text.substring(0, 100));
 
-    // Voice selection based on language - using deeper, more mysterious voices
+    // Use SSML for better whisper effect
+    const ssmlText = `<speak>
+      <prosody rate="slow" pitch="-5st" volume="loud">
+        <amazon:effect name="whispered">
+          ${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}
+        </amazon:effect>
+      </prosody>
+    </speak>`;
+
+    // Voice selection - using deeper, more mysterious female voices
     const voiceConfig = language === 'en' 
       ? {
           languageCode: 'en-US',
-          name: 'en-US-Neural2-C', // Deeper female voice in English
+          name: 'en-US-Neural2-C',
           ssmlGender: 'FEMALE'
         }
       : {
-          languageCode: 'es-ES',
-          name: 'es-ES-Neural2-E', // Deeper female voice in Spanish
+          languageCode: 'es-ES', 
+          name: 'es-ES-Neural2-E',
           ssmlGender: 'FEMALE'
         };
 
-    // Using Google Cloud Text-to-Speech API with mysterious whispering effect
     const response = await fetch(
       `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
       {
@@ -46,14 +54,14 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: { text },
+          input: { ssml: ssmlText },
           voice: voiceConfig,
           audioConfig: {
             audioEncoding: 'MP3',
-            speakingRate: 0.70, // Much slower for mysterious whisper effect
-            pitch: -6.0, // Much lower pitch for deep, mysterious tone
-            volumeGainDb: 6.0, // Increased volume to be heard over music
-            effectsProfileId: ['headphone-class-device'] // Optimized for close listening
+            speakingRate: 0.65,
+            pitch: -8.0,
+            volumeGainDb: 8.0,
+            effectsProfileId: ['headphone-class-device']
           }
         })
       }

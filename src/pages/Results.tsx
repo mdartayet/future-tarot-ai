@@ -197,8 +197,11 @@ const Results = () => {
   };
 
   const playReading = async (reading: string) => {
+    // If already playing, stop it
     if (isPlayingAudio && currentAudio) {
+      console.log('Stopping audio playback');
       currentAudio.pause();
+      currentAudio.currentTime = 0;
       setCurrentAudio(null);
       setIsPlayingAudio(false);
       // Restore background music volume
@@ -206,6 +209,7 @@ const Results = () => {
       return;
     }
 
+    console.log('Starting audio playback');
     setIsPlayingAudio(true);
 
     try {

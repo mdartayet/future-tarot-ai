@@ -102,28 +102,23 @@ serve(async (req) => {
 
     console.log(`Generating mystical speech with Zephyr voice (${language}):`, text.substring(0, 100));
 
-    // Using Gemini 2.5 Pro with native TTS and Zephyr voice
+    // Using Gemini 2.5 Flash with native TTS and Zephyr voice
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-tts:generateContentStream?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent`,
       {
         method: 'POST',
         headers: {
+          'x-goog-api-key': apiKey,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: text
-                }
-              ]
-            }
-          ],
+          contents: [{
+            parts: [{
+              text: text
+            }]
+          }],
           generationConfig: {
-            temperature: 1,
-            responseModalities: ['audio'],
+            responseModalities: ['AUDIO'],
             speechConfig: {
               voiceConfig: {
                 prebuiltVoiceConfig: {
@@ -142,88 +137,53 @@ serve(async (req) => {
       throw new Error(`Failed to generate speech: ${error}`);
     }
 
-    if (!response.body) {
-      throw new Error('No response body received');
-    }
-
-    // Process streaming response and collect audio chunks
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    const audioChunks: Uint8Array[] = [];
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (!line.trim() || line.startsWith('[')) continue;
-        
-        try {
-          const chunk = JSON.parse(line);
-          
-          if (chunk.candidates?.[0]?.content?.parts?.[0]?.inlineData) {
-            const inlineData = chunk.candidates[0].content.parts[0].inlineData;
-            const audioData = inlineData.data;
-            const mimeType = inlineData.mimeType || '';
-            
-            if (audioData) {
-              // Decode base64 audio data
-              const binaryString = atob(audioData);
-              const bytes = new Uint8Array(binaryString.length);
-              for (let i = 0; i < binaryString.length; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
-              
-              // If not WAV, convert to WAV
-              if (!mimeType.includes('wav') && mimeType.includes('audio')) {
-                const params = parseMimeType(mimeType);
-                const wavHeader = createWavHeader(bytes.length, params);
-                const wavFile = new Uint8Array(wavHeader.length + bytes.length);
-                wavFile.set(wavHeader, 0);
-                wavFile.set(bytes, wavHeader.length);
-                audioChunks.push(wavFile);
-              } else {
-                audioChunks.push(bytes);
-              }
-            }
-          }
-        } catch (e) {
-          console.error('Error parsing chunk:', e);
-        }
-      }
-    }
-
-    if (audioChunks.length === 0) {
+    const data = await response.json();
+    
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data) {
       throw new Error('No audio data received from Gemini TTS');
     }
 
-    console.log(`Received ${audioChunks.length} audio chunks`);
+    // The audio data is already in base64 format from Gemini
+    const base64Audio = data.candidates[0].content.parts[0].inlineData.data;
+    const mimeType = data.candidates[0].content.parts[0].inlineData.mimeType || 'audio/pcm';
 
-    // Combine all audio chunks
-    const totalLength = audioChunks.reduce((sum, chunk) => sum + chunk.length, 0);
-    const combinedAudio = new Uint8Array(totalLength);
-    let offset = 0;
-    for (const chunk of audioChunks) {
-      combinedAudio.set(chunk, offset);
-      offset += chunk.length;
+    console.log(`Mystical speech generated successfully with Zephyr voice (${mimeType})`);
+
+    // If it's PCM, we need to convert to WAV
+    let finalBase64Audio = base64Audio;
+    if (mimeType.includes('pcm') || mimeType.includes('L16')) {
+      console.log('Converting PCM to WAV...');
+      
+      // Decode base64 to get raw PCM data
+      const binaryString = atob(base64Audio);
+      const pcmData = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        pcmData[i] = binaryString.charCodeAt(i);
+      }
+      
+      // Create WAV header (PCM, 24000 Hz, 16-bit, mono)
+      const wavHeader = createWavHeader(pcmData.length, {
+        numChannels: 1,
+        sampleRate: 24000,
+        bitsPerSample: 16
+      });
+      
+      // Combine header + PCM data
+      const wavFile = new Uint8Array(wavHeader.length + pcmData.length);
+      wavFile.set(wavHeader, 0);
+      wavFile.set(pcmData, wavHeader.length);
+      
+      // Convert back to base64
+      let binary = '';
+      for (let i = 0; i < wavFile.length; i++) {
+        binary += String.fromCharCode(wavFile[i]);
+      }
+      finalBase64Audio = btoa(binary);
+      console.log('PCM converted to WAV successfully');
     }
-
-    // Convert to base64
-    let binary = '';
-    for (let i = 0; i < combinedAudio.length; i++) {
-      binary += String.fromCharCode(combinedAudio[i]);
-    }
-    const base64Audio = btoa(binary);
-
-    console.log('Mystical speech generated successfully with Zephyr voice');
 
     return new Response(
-      JSON.stringify({ audioContent: base64Audio }),
+      JSON.stringify({ audioContent: finalBase64Audio }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }

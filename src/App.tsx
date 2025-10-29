@@ -8,6 +8,7 @@ import Onboarding from "./pages/Onboarding";
 import Reading from "./pages/Reading";
 import Results from "./pages/Results";
 import Chat from "./pages/Chat";
+import PersonalityTest from "./pages/PersonalityTest";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/reading" element={<Reading />} />
           <Route path="/results" element={<Results />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/personality-test" element={<PersonalityTest />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/terms" element={<Terms />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -184,6 +184,14 @@ const Onboarding = () => {
             >
               {t.revealDestiny}
             </Button>
+
+            <Button
+              onClick={() => navigate("/personality-test")}
+              variant="outline"
+              className="w-full text-lg h-14 font-cinzel border-2 border-secondary/50 hover:bg-secondary/10"
+            >
+              ✨ {language === 'es' ? 'Descubre tu Carta del Tarot' : 'Discover Your Tarot Card'}
+            </Button>
             {(!name.trim() || !question.trim() || question.length < 10) && (
               <p className="text-xs text-amber-400 text-center font-crimson mt-2">
                 {!name.trim() ? t.warningName : 

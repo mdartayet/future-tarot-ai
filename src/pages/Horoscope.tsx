@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -43,7 +43,14 @@ const Horoscope = () => {
     }
   };
 
-  const today = new Date().toLocaleDateString('es-ES', {
+  // Reload prediction when language changes
+  useEffect(() => {
+    if (selectedSign) {
+      handleSignSelect(selectedSign);
+    }
+  }, [language]);
+
+  const today = new Date().toLocaleDateString(language === 'es' ? 'es-ES' : 'en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

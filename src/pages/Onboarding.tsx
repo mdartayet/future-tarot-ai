@@ -158,6 +158,28 @@ const Onboarding = () => {
             </div>
           </div>
 
+          {/* Option 3: Daily Horoscope */}
+          <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-4 shadow-2xl hover:shadow-[0_0_30px_rgba(124,58,237,0.3)] transition-all">
+            <div className="text-center space-y-3">
+              <div className="text-6xl">⭐</div>
+              <h2 className="text-2xl font-cinzel font-bold text-foreground">
+                {language === 'es' ? 'Horóscopo Diario' : 'Daily Horoscope'}
+              </h2>
+              <p className="text-muted-foreground font-crimson">
+                {language === 'es' 
+                  ? 'Predicciones astrológicas basadas en las posiciones planetarias' 
+                  : 'Astrological predictions based on planetary positions'}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate("/horoscope")}
+              className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground text-lg h-14 font-cinzel shadow-lg"
+              style={{ boxShadow: 'var(--glow-purple)' }}
+            >
+              🌟 {language === 'es' ? 'Ver Horóscopo' : 'View Horoscope'}
+            </Button>
+          </div>
+
           {/* Oracle Form (shown when user clicks and is logged in) */}
           {user && showOracleForm && (
             <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">

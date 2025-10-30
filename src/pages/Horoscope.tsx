@@ -80,11 +80,13 @@ const Horoscope = () => {
           <p className="text-white/80 text-lg capitalize">
             {today}
           </p>
-          <p className="text-white/60 mt-2">
-            {language === 'es' 
-              ? 'Predicciones basadas en las posiciones planetarias y constelaciones'
-              : 'Predictions based on planetary positions and constellations'}
-          </p>
+          <div className="mt-4 bg-gradient-mystic/20 backdrop-blur-sm border border-white/30 rounded-lg p-4 max-w-2xl mx-auto">
+            <p className="text-white font-semibold text-lg">
+              ✨ {language === 'es' 
+                ? 'Predicciones basadas en las posiciones planetarias y constelaciones'
+                : 'Predictions based on planetary positions and constellations'}
+            </p>
+          </div>
         </div>
 
         {!selectedSign ? (

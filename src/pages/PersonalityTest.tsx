@@ -13,6 +13,7 @@ import { personalityQuestions, tarotPersonalities } from "@/data/tarot-personali
 import { ArrowLeft, ArrowRight, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import AdSense from "@/components/AdSense";
 
 const PersonalityTest = () => {
   const navigate = useNavigate();
@@ -123,6 +124,11 @@ const PersonalityTest = () => {
               </p>
             </div>
 
+            {/* AdSense Banner */}
+            <div className="mb-6">
+              <AdSense className="min-h-[100px]" />
+            </div>
+
             {/* Result Card */}
             <div className="grid md:grid-cols-2 gap-8">
               {/* Card Display */}
@@ -207,6 +213,11 @@ const PersonalityTest = () => {
                   </Button>
                 </div>
               </Card>
+            </div>
+
+            {/* AdSense Banner */}
+            <div className="mt-8">
+              <AdSense className="min-h-[100px]" />
             </div>
           </div>
         </div>
@@ -311,6 +322,11 @@ const PersonalityTest = () => {
               </Button>
             </div>
           </Card>
+
+          {/* AdSense Banner */}
+          <div className="mt-6">
+            <AdSense className="min-h-[100px]" />
+          </div>
         </div>
       </div>
     </CaveBackground>

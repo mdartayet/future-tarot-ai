@@ -15,7 +15,6 @@ import type { User } from "@supabase/supabase-js";
 import logo from "@/assets/logo.png";
 import { useLanguage, translations } from "@/hooks/use-language";
 import { logger } from "@/lib/logger";
-import AdSense from "@/components/AdSense";
 
 
 const Onboarding = () => {
@@ -132,11 +131,6 @@ const Onboarding = () => {
               >
                 ✨ {language === 'es' ? 'Comenzar Test' : 'Start Test'}
               </Button>
-              
-              {/* AdSense Banner */}
-              <div className="pt-4">
-                <AdSense className="min-h-[90px]" />
-              </div>
             </div>
 
             {/* Option 2: Oracle Reading */}
@@ -161,11 +155,6 @@ const Onboarding = () => {
                   ? (language === 'es' ? 'Iniciar Lectura' : 'Start Reading')
                   : (language === 'es' ? 'Iniciar Sesión' : 'Sign In')}
               </Button>
-              
-              {/* AdSense Banner */}
-              <div className="pt-4">
-                <AdSense className="min-h-[90px]" />
-              </div>
             </div>
           </div>
 

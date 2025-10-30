@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_horoscopes: {
+        Row: {
+          created_at: string
+          date: string
+          id: string
+          prediction: string
+          sign: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          id?: string
+          prediction: string
+          sign: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          id?: string
+          prediction?: string
+          sign?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number

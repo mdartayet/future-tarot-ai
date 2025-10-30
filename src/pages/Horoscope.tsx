@@ -7,10 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { zodiacSigns } from "@/data/zodiac-signs";
 import CaveBackground from "@/components/CaveBackground";
+import LanguageToggle from "@/components/LanguageToggle";
+import { useLanguage } from "@/hooks/use-language";
 
 const Horoscope = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { language } = useLanguage();
   const [selectedSign, setSelectedSign] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +25,7 @@ const Horoscope = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('generate-horoscope', {
-        body: { sign: signName }
+        body: { sign: signName, language }
       });
 
       if (error) throw error;
@@ -50,24 +53,30 @@ const Horoscope = () => {
   return (
     <CaveBackground>
       <div className="container mx-auto px-4 py-8">
-        <Button
-          onClick={() => navigate("/")}
-          variant="ghost"
-          className="mb-6 text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Volver
-        </Button>
+        <div className="flex justify-between items-start mb-6">
+          <Button
+            onClick={() => navigate("/")}
+            variant="ghost"
+            className="text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            {language === 'es' ? 'Volver' : 'Back'}
+          </Button>
+          
+          <LanguageToggle />
+        </div>
 
         <div className="text-center mb-8">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 font-serif">
-            Horóscopo Diario
+            {language === 'es' ? 'Horóscopo Diario' : 'Daily Horoscope'}
           </h1>
           <p className="text-white/80 text-lg capitalize">
             {today}
           </p>
           <p className="text-white/60 mt-2">
-            Predicciones basadas en las posiciones planetarias y constelaciones
+            {language === 'es' 
+              ? 'Predicciones basadas en las posiciones planetarias y constelaciones'
+              : 'Predictions based on planetary positions and constellations'}
           </p>
         </div>
 
@@ -130,7 +139,7 @@ const Horoscope = () => {
                   variant="outline"
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
-                  Ver otros signos
+                  {language === 'es' ? 'Ver otros signos' : 'View other signs'}
                 </Button>
               </div>
             </Card>

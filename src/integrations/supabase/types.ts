@@ -19,6 +19,7 @@ export type Database = {
           created_at: string
           date: string
           id: string
+          language: string
           prediction: string
           sign: string
         }
@@ -26,6 +27,7 @@ export type Database = {
           created_at?: string
           date: string
           id?: string
+          language?: string
           prediction: string
           sign: string
         }
@@ -33,6 +35,7 @@ export type Database = {
           created_at?: string
           date?: string
           id?: string
+          language?: string
           prediction?: string
           sign?: string
         }

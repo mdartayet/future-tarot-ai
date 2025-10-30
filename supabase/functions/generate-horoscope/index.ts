@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { sign } = await req.json();
+    const { sign, language = 'es' } = await req.json();
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -20,12 +20,13 @@ serve(async (req) => {
 
     const today = new Date().toISOString().split('T')[0];
 
-    // Check if horoscope already exists for today
+    // Check if horoscope already exists for today and language
     const { data: existing } = await supabase
       .from('daily_horoscopes')
       .select('*')
       .eq('sign', sign)
       .eq('date', today)
+      .eq('language', language)
       .single();
 
     if (existing) {
@@ -41,18 +42,31 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `Eres un astrólogo experto que crea horóscopos diarios basados en las posiciones planetarias y constelaciones. 
-    Genera predicciones únicas, personalizadas y profundas para cada signo zodiacal.
-    Incluye aspectos de amor, trabajo, salud y energía del día.
-    Usa un tono místico pero profesional. La predicción debe ser de 3-4 párrafos.`;
+    const systemPrompt = language === 'es'
+      ? `Eres un astrólogo experto que crea horóscopos diarios basados en las posiciones planetarias y constelaciones. 
+      Genera predicciones únicas, personalizadas y profundas para cada signo zodiacal.
+      Incluye aspectos de amor, trabajo, salud y energía del día.
+      Usa un tono místico pero profesional. La predicción debe ser de 3-4 párrafos.`
+      : `You are an expert astrologer who creates daily horoscopes based on planetary positions and constellations.
+      Generate unique, personalized, and profound predictions for each zodiac sign.
+      Include aspects of love, work, health, and energy of the day.
+      Use a mystical but professional tone. The prediction should be 3-4 paragraphs.`;
 
-    const userPrompt = `Genera el horóscopo diario para ${sign} considerando:
-    - Las posiciones planetarias actuales
-    - Las constelaciones visibles
-    - Los tránsitos astrológicos del día
-    - La influencia lunar
-    
-    Proporciona una predicción completa que cubra amor, trabajo, salud y energía general.`;
+    const userPrompt = language === 'es'
+      ? `Genera el horóscopo diario para ${sign} considerando:
+      - Las posiciones planetarias actuales
+      - Las constelaciones visibles
+      - Los tránsitos astrológicos del día
+      - La influencia lunar
+      
+      Proporciona una predicción completa que cubra amor, trabajo, salud y energía general.`
+      : `Generate the daily horoscope for ${sign} considering:
+      - Current planetary positions
+      - Visible constellations
+      - Astrological transits of the day
+      - Lunar influence
+      
+      Provide a complete prediction covering love, work, health, and general energy.`;
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -88,7 +102,8 @@ serve(async (req) => {
       .insert({
         sign,
         date: today,
-        prediction
+        prediction,
+        language
       });
 
     return new Response(

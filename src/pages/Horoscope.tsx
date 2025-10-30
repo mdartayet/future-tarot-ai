@@ -9,6 +9,7 @@ import { zodiacSigns } from "@/data/zodiac-signs";
 import CaveBackground from "@/components/CaveBackground";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useLanguage } from "@/hooks/use-language";
+import AdSense from "@/components/AdSense";
 
 const Horoscope = () => {
   const navigate = useNavigate();
@@ -89,6 +90,11 @@ const Horoscope = () => {
           </div>
         </div>
 
+        {/* AdSense Banner */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <AdSense className="min-h-[100px]" />
+        </div>
+
         {!selectedSign ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
             {zodiacSigns.map((sign) => (
@@ -138,6 +144,13 @@ const Horoscope = () => {
                   ))}
                 </div>
               ) : null}
+
+              {/* AdSense Banner after prediction */}
+              {prediction && (
+                <div className="mt-6">
+                  <AdSense className="min-h-[100px]" />
+                </div>
+              )}
 
               <div className="mt-8 text-center">
                 <Button

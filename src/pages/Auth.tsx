@@ -42,15 +42,32 @@ const Auth = () => {
     // Check if this is a password recovery link
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const type = hashParams.get('type');
+    const accessToken = hashParams.get('access_token');
     
-    if (type === 'recovery') {
-      setIsPasswordRecovery(true);
+    if (type === 'recovery' && accessToken) {
+      // Verify the token is valid
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error || !session) {
+          toast({
+            title: "Error",
+            description: language === 'es' 
+              ? 'El enlace de recuperación es inválido o ha expirado. Por favor, solicita uno nuevo.' 
+              : 'The recovery link is invalid or has expired. Please request a new one.',
+            variant: "destructive",
+          });
+          setIsPasswordRecovery(false);
+          // Clear the hash
+          window.history.replaceState(null, '', window.location.pathname);
+        } else {
+          setIsPasswordRecovery(true);
+        }
+      });
       return;
     }
 
     // Redirect if already logged in (but not during password recovery)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session && !isPasswordRecovery) {
+      if (session && type !== 'recovery') {
         navigate("/");
       }
     });
@@ -58,13 +75,16 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
-      } else if (session && !isPasswordRecovery) {
+      } else if (event === 'SIGNED_IN' && isPasswordRecovery) {
+        // Don't redirect during password recovery
+        return;
+      } else if (session && event === 'SIGNED_IN') {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, isPasswordRecovery]);
+  }, [navigate, language, toast]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

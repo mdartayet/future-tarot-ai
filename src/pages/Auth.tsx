@@ -34,23 +34,37 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
-    // Redirect if already logged in
+    // Check if this is a password recovery link
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const type = hashParams.get('type');
+    
+    if (type === 'recovery') {
+      setIsPasswordRecovery(true);
+      return;
+    }
+
+    // Redirect if already logged in (but not during password recovery)
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+      if (session && !isPasswordRecovery) {
         navigate("/");
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+      } else if (session && !isPasswordRecovery) {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, isPasswordRecovery]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -183,6 +197,54 @@ const Auth = () => {
     }
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: language === 'es' ? 'Las contraseñas no coinciden' : 'Passwords do not match',
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const validation = passwordSchema.safeParse(newPassword);
+    if (!validation.success) {
+      toast({
+        title: "Error de validación",
+        description: validation.error.errors[0].message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "✨ Contraseña actualizada",
+        description: language === 'es' ? 'Tu contraseña ha sido cambiada exitosamente' : 'Your password has been changed successfully',
+      });
+
+      setIsPasswordRecovery(false);
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <CaveBackground>
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
@@ -207,7 +269,70 @@ const Auth = () => {
             </p>
           </div>
 
-          <Card className="bg-card/80 backdrop-blur-sm border border-border p-8">
+          {isPasswordRecovery ? (
+            <Card className="bg-card/80 backdrop-blur-sm border border-border p-8">
+              <div className="space-y-4">
+                <div className="space-y-2 text-center">
+                  <h2 className="text-2xl font-cinzel font-bold">
+                    {language === 'es' ? 'Restablecer Contraseña' : 'Reset Password'}
+                  </h2>
+                  <p className="text-muted-foreground font-crimson">
+                    {language === 'es' ? 'Ingresa tu nueva contraseña' : 'Enter your new password'}
+                  </p>
+                </div>
+
+                <form onSubmit={handleUpdatePassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-password" className="font-cinzel">
+                      {language === 'es' ? 'Nueva Contraseña' : 'New Password'}
+                    </Label>
+                    <Input
+                      id="new-password"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••"
+                      required
+                      minLength={8}
+                      className="font-crimson"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="confirm-password" className="font-cinzel">
+                      {language === 'es' ? 'Confirmar Contraseña' : 'Confirm Password'}
+                    </Label>
+                    <Input
+                      id="confirm-password"
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••"
+                      required
+                      minLength={8}
+                      className="font-crimson"
+                    />
+                    <p className="text-xs text-muted-foreground font-crimson">
+                      {language === 'es' 
+                        ? 'Mínimo 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo' 
+                        : 'Minimum 8 characters including uppercase, lowercase, number and symbol'}
+                    </p>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-mystic hover:opacity-90 text-primary-foreground font-cinzel"
+                  >
+                    {isLoading 
+                      ? (language === 'es' ? 'Actualizando...' : 'Updating...') 
+                      : (language === 'es' ? 'Actualizar Contraseña' : 'Update Password')}
+                  </Button>
+                </form>
+              </div>
+            </Card>
+          ) : (
+            <Card className="bg-card/80 backdrop-blur-sm border border-border p-8">
             <Tabs defaultValue="signin" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-6">
                 <TabsTrigger value="signin" className="font-cinzel">{t.signIn}</TabsTrigger>
@@ -377,6 +502,7 @@ const Auth = () => {
               </TabsContent>
             </Tabs>
           </Card>
+          )}
         </div>
       </div>
     </CaveBackground>

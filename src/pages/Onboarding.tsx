@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,7 @@ const Onboarding = () => {
   const [focus, setFocus] = useState<"love" | "career" | "money">("love");
   const [question, setQuestion] = useState("");
   const [showOracleForm, setShowOracleForm] = useState(false);
+  const oracleFormRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check auth state but don't redirect
@@ -46,6 +47,17 @@ const Onboarding = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (showOracleForm && oracleFormRef.current) {
+      setTimeout(() => {
+        oracleFormRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        });
+      }, 100);
+    }
+  }, [showOracleForm]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -182,7 +194,7 @@ const Onboarding = () => {
 
           {/* Oracle Form (shown when user clicks and is logged in) */}
           {user && showOracleForm && (
-            <div className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">
+            <div ref={oracleFormRef} className="bg-card/80 backdrop-blur-sm border border-border rounded-2xl p-8 space-y-6 shadow-2xl">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-cinzel font-bold text-foreground">
                   {language === 'es' ? 'Prepara tu consulta' : 'Prepare your consultation'}

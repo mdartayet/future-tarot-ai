@@ -240,7 +240,7 @@ const Reading = () => {
               <Button
                 onClick={shuffleCards}
                 size="lg"
-                className="bg-gradient-mystic hover:opacity-90 text-primary-foreground h-16 px-10 font-cinzel text-lg shadow-2xl"
+                className="bg-gradient-mystic hover:opacity-90 text-primary-foreground h-16 px-10 font-cinzel text-lg shadow-2xl animate-pulse"
                 style={{ boxShadow: 'var(--glow-purple)' }}
               >
                 <Sparkles className="w-6 h-6 mr-3 animate-glow" />

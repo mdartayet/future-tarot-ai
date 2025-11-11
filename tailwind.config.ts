@@ -97,6 +97,16 @@ export default {
           "0%": { transform: "rotateY(180deg) scale(0.8)", opacity: "0" },
           "100%": { transform: "rotateY(0deg) scale(1)", opacity: "1" },
         },
+        "pulse-colors": {
+          "0%, 100%": { 
+            backgroundImage: "linear-gradient(135deg, hsl(263, 70%, 50%), hsl(270, 70%, 60%))",
+            boxShadow: "0 0 30px rgba(124, 58, 237, 0.6)"
+          },
+          "50%": { 
+            backgroundImage: "linear-gradient(135deg, hsl(45, 93%, 58%), hsl(48, 96%, 53%))",
+            boxShadow: "0 0 30px rgba(251, 191, 36, 0.6)"
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -108,6 +118,7 @@ export default {
         "shuffle": "shuffle 0.5s ease-in-out",
         "flicker": "flicker 3s ease-in-out infinite",
         "reveal": "reveal 0.8s ease-out forwards",
+        "pulse-colors": "pulse-colors 2s ease-in-out infinite",
       },
       backgroundImage: {
         'gradient-cave': 'var(--gradient-cave)',

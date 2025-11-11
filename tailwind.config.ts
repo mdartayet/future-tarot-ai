@@ -118,7 +118,7 @@ export default {
         "shuffle": "shuffle 0.5s ease-in-out",
         "flicker": "flicker 3s ease-in-out infinite",
         "reveal": "reveal 0.8s ease-out forwards",
-        "pulse-colors": "pulse-colors 4s ease-in-out infinite",
+        "pulse-colors": "pulse-colors 8s ease-in-out infinite",
       },
       backgroundImage: {
         'gradient-cave': 'var(--gradient-cave)',
